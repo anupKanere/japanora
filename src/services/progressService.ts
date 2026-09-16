@@ -10,7 +10,7 @@ import type {
   FamiliarityLevel,
 } from '@/types'
 import { storageService } from './storageService'
-import { getAllLessons, TOTAL_LESSONS } from '@/data/curriculum/n5/units'
+import { getAllLessons, getLessonById, TOTAL_LESSONS } from '@/data/curriculum/n5/units'
 
 const PROGRESS_KEY = 'learner_progress'
 
@@ -222,6 +222,66 @@ export const progressService = {
       progress.lessonProgress[lessonId].completedAt = new Date().toISOString()
       progress.lessonProgress[lessonId].homeworkScore = score
     }
+    // Automatically update vocab, grammar, and kanji taught in this lesson
+    const lesson = getLessonById(lessonId)
+    if (lesson) {
+      const now = new Date().toISOString()
+      const isHighPass = score >= 8
+      const familiarity: FamiliarityLevel = isHighPass ? 'familiar' : 'learning'
+
+      // Vocab
+      lesson.vocabularyIds?.forEach((vid) => {
+        if (!progress.vocabProgress[vid]) {
+          progress.vocabProgress[vid] = {
+            vocabId: vid,
+            familiarity,
+            correctCount: isHighPass ? 4 : 2,
+            incorrectCount: 0,
+            lastReviewedAt: now,
+            mistakeCategories: [],
+          }
+        } else if (isHighPass && progress.vocabProgress[vid].familiarity === 'learning') {
+          progress.vocabProgress[vid].familiarity = 'familiar'
+          progress.vocabProgress[vid].correctCount += 2
+          progress.vocabProgress[vid].lastReviewedAt = now
+        }
+      })
+
+      // Grammar
+      lesson.grammarPoints?.forEach((gid) => {
+        if (!progress.grammarProgress[gid]) {
+          progress.grammarProgress[gid] = {
+            grammarId: gid,
+            familiarity,
+            correctCount: isHighPass ? 4 : 2,
+            incorrectCount: 0,
+            lastPractisedAt: now,
+          }
+        } else if (isHighPass && progress.grammarProgress[gid].familiarity === 'learning') {
+          progress.grammarProgress[gid].familiarity = 'familiar'
+          progress.grammarProgress[gid].correctCount += 2
+          progress.grammarProgress[gid].lastPractisedAt = now
+        }
+      })
+
+      // Kanji
+      lesson.kanjiIds?.forEach((kid) => {
+        if (!progress.kanjiProgress[kid]) {
+          progress.kanjiProgress[kid] = {
+            kanjiId: kid,
+            familiarity,
+            correctCount: isHighPass ? 4 : 2,
+            incorrectCount: 0,
+            lastReviewedAt: now,
+          }
+        } else if (isHighPass && progress.kanjiProgress[kid].familiarity === 'learning') {
+          progress.kanjiProgress[kid].familiarity = 'familiar'
+          progress.kanjiProgress[kid].correctCount += 2
+          progress.kanjiProgress[kid].lastReviewedAt = now
+        }
+      })
+    }
+
     this.saveProgress(progress)
   },
 
@@ -280,6 +340,45 @@ export const progressService = {
     ).length
   },
 
+  getVocabBreakdown(totalVocabCount: number = 793): {
+    learned: number
+    learning: number
+    unstudied: number
+    total: number
+  } {
+    const progress = this.getProgress()
+    let learned = 0
+    let learning = 0
+    for (const vp of Object.values(progress.vocabProgress)) {
+      if (vp.familiarity === 'mastered' || vp.familiarity === 'familiar') {
+        learned++
+      } else if (vp.familiarity === 'learning') {
+        learning++
+      }
+    }
+    const unstudied = Math.max(0, totalVocabCount - learned - learning)
+    return { learned, learning, unstudied, total: totalVocabCount }
+  },
+
+  setVocabFamiliarity(vocabId: string, level: FamiliarityLevel): void {
+    const progress = this.getProgress()
+    const now = new Date().toISOString()
+    if (!progress.vocabProgress[vocabId]) {
+      progress.vocabProgress[vocabId] = {
+        vocabId,
+        familiarity: level,
+        correctCount: level === 'mastered' ? 8 : level === 'familiar' ? 4 : 1,
+        incorrectCount: 0,
+        lastReviewedAt: now,
+        mistakeCategories: [],
+      }
+    } else {
+      progress.vocabProgress[vocabId].familiarity = level
+      progress.vocabProgress[vocabId].lastReviewedAt = now
+    }
+    this.saveProgress(progress)
+  },
+
   getKanjiLearnedCount(): number {
     const progress = this.getProgress()
     return Object.values(progress.kanjiProgress).filter(
@@ -292,6 +391,44 @@ export const progressService = {
     return Object.values(progress.grammarProgress).filter(
       (gp) => gp.familiarity === 'familiar' || gp.familiarity === 'mastered'
     ).length
+  },
+
+  getGrammarBreakdown(totalGrammarCount: number = 50): {
+    mastered: number
+    learning: number
+    unstudied: number
+    total: number
+  } {
+    const progress = this.getProgress()
+    let mastered = 0
+    let learning = 0
+    for (const gp of Object.values(progress.grammarProgress)) {
+      if (gp.familiarity === 'mastered' || gp.familiarity === 'familiar') {
+        mastered++
+      } else if (gp.familiarity === 'learning') {
+        learning++
+      }
+    }
+    const unstudied = Math.max(0, totalGrammarCount - mastered - learning)
+    return { mastered, learning, unstudied, total: totalGrammarCount }
+  },
+
+  setGrammarFamiliarity(grammarId: string, level: FamiliarityLevel): void {
+    const progress = this.getProgress()
+    const now = new Date().toISOString()
+    if (!progress.grammarProgress[grammarId]) {
+      progress.grammarProgress[grammarId] = {
+        grammarId,
+        familiarity: level,
+        correctCount: level === 'mastered' ? 8 : level === 'familiar' ? 4 : 1,
+        incorrectCount: 0,
+        lastPractisedAt: now,
+      }
+    } else {
+      progress.grammarProgress[grammarId].familiarity = level
+      progress.grammarProgress[grammarId].lastPractisedAt = now
+    }
+    this.saveProgress(progress)
   },
 
   addStudySession(session: StudySession): void {

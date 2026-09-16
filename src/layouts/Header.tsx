@@ -7,6 +7,7 @@ import { MobileDrawer } from './Sidebar'
 // Page titles with Japanese subtitle
 const PAGE_META: Record<string, { en: string; ja: string }> = {
   '/dashboard':  { en: 'Dashboard',    ja: 'ホーム' },
+  '/kana':       { en: 'Kana (あ/ア)', ja: '五十音図' },
   '/learn':      { en: 'Learn',        ja: 'まなぶ' },
   '/grammar':    { en: 'Grammar',      ja: '文法' },
   '/vocabulary': { en: 'Vocabulary',   ja: '語彙' },

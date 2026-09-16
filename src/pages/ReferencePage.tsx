@@ -1,5 +1,19 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { Search, ChevronLeft, ChevronRight, LayoutGrid, Rows, X } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  LayoutGrid,
+  Rows,
+  X,
+  Flame,
+  RotateCcw,
+  Volume2,
+  Flag,
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react'
 import {
   n5Greetings,
   n5BodyParts,
@@ -21,26 +35,58 @@ import type {
   BodyPart,
   FamilyMember,
   VerbGroup,
+  KanjiRef,
 } from '@/data/reference/n5-reference'
+import { playKanaAudio } from '@/data/kana/kana-data'
 
-// ─── Tab definitions ──────────────────────────────────────────────────────────
+// ─── Tab definitions with counts & groups ──────────────────────────────────────
 
-const TABS = [
-  { id: 'greetings', emoji: '🙏', label: 'Greetings' },
-  { id: 'body', emoji: '🧍', label: 'Body Parts' },
-  { id: 'days', emoji: '📅', label: 'Days' },
-  { id: 'numbers', emoji: '🔢', label: 'Numbers' },
-  { id: 'clock', emoji: '🕐', label: 'Clock' },
-  { id: 'family-own', emoji: '👨‍👩‍👧', label: 'Family (Own)' },
-  { id: 'family-oth', emoji: '🏠', label: 'Family (Others)' },
-  { id: 'wh', emoji: '❓', label: 'WH Questions' },
-  { id: 'particles', emoji: '📌', label: 'Particles' },
-  { id: 'kanji', emoji: '漢', label: 'Kanji 125' },
-  { id: 'adj', emoji: '✏️', label: 'Adjectives' },
-  { id: 'verbs', emoji: '動', label: 'Verb Chart' },
+export interface TabDef {
+  id: TabId
+  emoji: string
+  label: string
+  count: number
+  group: 'conversation' | 'time' | 'foundation'
+  description: string
+}
+
+export const TABS: TabDef[] = [
+  { id: 'greetings', emoji: '🙏', label: 'Greetings', count: n5Greetings.length, group: 'conversation', description: 'Essential daily greetings & polite expressions' },
+  { id: 'body', emoji: '🧍', label: 'Body Parts', count: n5BodyParts.length, group: 'foundation', description: 'Head-to-toe anatomical terms & body idioms' },
+  { id: 'days', emoji: '📅', label: 'Days & Dates', count: n5DaysOfWeek.length + n5DateWords.length, group: 'time', description: 'Days of week, months, and special calendar readings' },
+  { id: 'numbers', emoji: '🔢', label: 'Numbers', count: n5Numbers.length, group: 'time', description: '1 to 10,000 with kanji, hiragana, and pronunciation rules' },
+  { id: 'clock', emoji: '🕐', label: 'Clock & Time', count: n5ClockHours.length + n5ClockMinutes.length + n5TimeWords.length, group: 'time', description: 'Hours, minutes with sound changes, and relative time words' },
+  { id: 'family-own', emoji: '👨‍👩‍👧', label: 'Family (Own)', count: n5FamilyOwn.length, group: 'conversation', description: 'Humble terms when speaking about your own family' },
+  { id: 'family-oth', emoji: '🏠', label: 'Family (Others)', count: n5FamilyOthers.length, group: 'conversation', description: 'Polite honorific terms when referring to others\' family' },
+  { id: 'wh', emoji: '❓', label: 'WH Questions', count: n5WHQuestions.length, group: 'conversation', description: 'Question words (who, what, where, when, why, how)' },
+  { id: 'particles', emoji: '📌', label: 'Particles', count: n5Particles.length, group: 'foundation', description: 'Grammatical particles (は, が, を, に, で, と, も, etc.)' },
+  { id: 'kanji', emoji: '漢', label: 'Kanji 125', count: n5Kanji110.length, group: 'foundation', description: '100% complete official JLPT N5 kanji index' },
+  { id: 'adj', emoji: '✏️', label: 'Adjectives', count: n5Adjectives.length, group: 'foundation', description: 'い-adjectives and な-adjectives with conjugations' },
+  { id: 'verbs', emoji: '動', label: 'Verb Chart', count: n5VerbChart.length, group: 'foundation', description: 'Essential verbs across Group 1, Group 2, and Irregular' },
+]
+
+export type TabId =
+  | 'greetings'
+  | 'body'
+  | 'days'
+  | 'numbers'
+  | 'clock'
+  | 'family-own'
+  | 'family-oth'
+  | 'wh'
+  | 'particles'
+  | 'kanji'
+  | 'adj'
+  | 'verbs'
+
+export const TAB_GROUPS = [
+  { id: 'all', label: 'All Categories', count: 12 },
+  { id: 'conversation', label: '🗣️ Conversational', count: 4 },
+  { id: 'time', label: '🔢 Numbers & Time', count: 3 },
+  { id: 'foundation', label: '📚 Foundations', count: 5 },
 ] as const
 
-type TabId = typeof TABS[number]['id']
+export type TabGroupId = typeof TAB_GROUPS[number]['id']
 
 // ─── Shared search input ──────────────────────────────────────────────────────
 
@@ -1448,10 +1494,404 @@ const KANJI_CATEGORY_COLOR: Record<string, string> = {
   Money: 'bg-yellow-100 text-yellow-700',
 }
 
+// ─── KANJI SPEED QUIZ MODAL ───────────────────────────────────────────────────
+
+function KanjiQuizModal({
+  initialCategory,
+  onClose,
+}: {
+  initialCategory: string
+  onClose: () => void
+}) {
+  const [selectedCat, setSelectedCat] = useState<string>(initialCategory)
+  const [currentIdx, setCurrentIdx] = useState(0)
+  const [score, setScore] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [maxStreak, setMaxStreak] = useState(0)
+  const [selectedOption, setSelectedOption] = useState<string | null>(null)
+  const [isAnswered, setIsAnswered] = useState(false)
+  const [quizFinished, setQuizFinished] = useState(false)
+  const [missedKanjis, setMissedKanjis] = useState<KanjiRef[]>([])
+  const [deckKey, setDeckKey] = useState(0)
+  const [showReadingHint, setShowReadingHint] = useState(false)
+
+  // Categories list with counts
+  const categoryOptions = useMemo(() => {
+    const counts: Record<string, number> = {}
+    n5Kanji110.forEach((k) => {
+      counts[k.category] = (counts[k.category] || 0) + 1
+    })
+    const cats = Array.from(new Set(n5Kanji110.map((k) => k.category)))
+    return [
+      { id: 'all', label: 'All Kanjis', count: n5Kanji110.length },
+      ...cats.map((c) => ({ id: c, label: c, count: counts[c] || 0 })),
+    ]
+  }, [])
+
+  // Filter pool based on selectedCat
+  const kanjiPool = useMemo(() => {
+    if (selectedCat === 'all') return n5Kanji110
+    return n5Kanji110.filter((k) => k.category === selectedCat)
+  }, [selectedCat])
+
+  // Random shuffled deck: includes ALL kanjis in that category (or all 125 if 'all')
+  const shuffledDeck = useMemo(() => {
+    return [...kanjiPool].sort(() => 0.5 - Math.random())
+  }, [kanjiPool, deckKey])
+
+  const currentKanji = shuffledDeck[currentIdx]
+
+  // Multiple choice options: 1 correct meaning, 3 distractors
+  const options = useMemo(() => {
+    if (!currentKanji) return []
+    const otherKanjis = n5Kanji110.filter(
+      (k) => k.meaning.toLowerCase() !== currentKanji.meaning.toLowerCase()
+    )
+    const shuffledOthers = [...otherKanjis].sort(() => 0.5 - Math.random())
+    const selectedDistractors: string[] = []
+    for (const k of shuffledOthers) {
+      if (!selectedDistractors.includes(k.meaning) && k.meaning !== currentKanji.meaning) {
+        selectedDistractors.push(k.meaning)
+        if (selectedDistractors.length === 3) break
+      }
+    }
+    const allOpts = [currentKanji.meaning, ...selectedDistractors]
+    return allOpts.sort(() => 0.5 - Math.random())
+  }, [currentKanji])
+
+  function handleSelectOption(meaning: string) {
+    if (isAnswered || !currentKanji) return
+    setSelectedOption(meaning)
+    setIsAnswered(true)
+
+    const isCorrect = meaning.toLowerCase() === currentKanji.meaning.toLowerCase()
+    if (isCorrect) {
+      const nextScore = score + 1
+      const nextStreak = streak + 1
+      setScore(nextScore)
+      setStreak(nextStreak)
+      if (nextStreak > maxStreak) setMaxStreak(nextStreak)
+      playKanaAudio(currentKanji.character)
+    } else {
+      setStreak(0)
+      setMissedKanjis((prev) => {
+        if (prev.some((k) => k.id === currentKanji.id)) return prev
+        return [...prev, currentKanji]
+      })
+    }
+
+    setTimeout(() => {
+      if (currentIdx < shuffledDeck.length - 1) {
+        setCurrentIdx((i) => i + 1)
+        setSelectedOption(null)
+        setIsAnswered(false)
+      } else {
+        // Completed all kanjis in category/deck!
+        setQuizFinished(true)
+      }
+    }, 1300)
+  }
+
+  function handleStop() {
+    setQuizFinished(true)
+  }
+
+  function handleRestart() {
+    setCurrentIdx(0)
+    setScore(0)
+    setStreak(0)
+    setMaxStreak(0)
+    setSelectedOption(null)
+    setIsAnswered(false)
+    setQuizFinished(false)
+    setMissedKanjis([])
+    setDeckKey((k) => k + 1)
+  }
+
+  function handleSwitchCategory(newCat: string) {
+    setSelectedCat(newCat)
+    setCurrentIdx(0)
+    setScore(0)
+    setStreak(0)
+    setMaxStreak(0)
+    setSelectedOption(null)
+    setIsAnswered(false)
+    setQuizFinished(false)
+    setMissedKanjis([])
+    setDeckKey((k) => k + 1)
+  }
+
+  const answeredCount = currentIdx + (isAnswered ? 1 : 0)
+  const accuracyPct = answeredCount > 0 ? Math.round((score / answeredCount) * 100) : 0
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in" role="dialog" aria-modal="true">
+      <div className="bg-surface rounded-2xl border border-border max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+        {/* Header Bar */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-surface-2 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Flame size={18} className="text-accent" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-text-primary flex items-center gap-1.5">
+                <span>Kanji Speed Quiz</span>
+                <span className="text-[10px] px-2 py-0.2 rounded-full bg-accent/10 text-accent font-semibold border border-accent/20">
+                  {selectedCat === 'all' ? 'All 125' : `${selectedCat} (${shuffledDeck.length})`}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {!quizFinished && answeredCount > 0 && (
+              <button
+                onClick={handleStop}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface border border-border hover:bg-surface-2 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors"
+                title="Stop quiz and see your results"
+              >
+                <Flag size={13} className="text-rose-500" />
+                <span>Stop & Finish</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-text-tertiary hover:text-text-primary hover:bg-surface transition-colors"
+              aria-label="Close modal"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Category Switcher Pills */}
+        <div className="px-5 py-2 border-b border-border bg-surface flex items-center gap-1.5 overflow-x-auto custom-scrollbar-x flex-shrink-0">
+          <span className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider mr-1 flex-shrink-0">
+            Category:
+          </span>
+          {categoryOptions.map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => handleSwitchCategory(opt.id)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1 border ${
+                selectedCat === opt.id
+                  ? 'bg-accent text-white border-accent shadow-xs'
+                  : 'bg-surface border-border text-text-secondary hover:text-text-primary hover:bg-surface-2'
+              }`}
+            >
+              <span>{opt.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                selectedCat === opt.id ? 'bg-white/20 text-white font-bold' : 'bg-surface-2 text-text-tertiary'
+              }`}>
+                {opt.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-5 overflow-y-auto flex-1">
+          {!quizFinished && currentKanji ? (
+            <div>
+              {/* Status Header: Question Count, Score, Streak */}
+              <div className="flex items-center justify-between text-xs text-text-tertiary mb-2">
+                <span className="font-semibold text-text-primary">
+                  Question <strong className="text-accent">{currentIdx + 1}</strong> of {shuffledDeck.length}
+                </span>
+                <div className="flex items-center gap-3">
+                  {streak >= 2 && (
+                    <span className="text-amber-500 font-bold flex items-center gap-1 animate-pulse text-xs">
+                      🔥 {streak} streak!
+                    </span>
+                  )}
+                  <span className="font-bold text-accent">Score: {score}</span>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="h-1.5 bg-surface-2 rounded-full overflow-hidden mb-5">
+                <div
+                  className="h-full bg-accent rounded-full transition-all duration-300"
+                  style={{ width: `${((currentIdx + 1) / shuffledDeck.length) * 100}%` }}
+                />
+              </div>
+
+              {/* Big Kanji Question Card */}
+              <div className="flex flex-col items-center justify-center p-6 bg-surface-2 rounded-2xl border border-border mb-5 relative overflow-hidden">
+                {/* Category badge */}
+                <span className="absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface border border-border text-text-secondary">
+                  {currentKanji.category}
+                </span>
+
+                {/* Audio button */}
+                <button
+                  onClick={() => playKanaAudio(currentKanji.character)}
+                  className="absolute top-3 right-3 p-2 rounded-xl bg-surface border border-border text-accent hover:bg-accent hover:text-white transition-all shadow-xs flex items-center gap-1 text-xs font-semibold"
+                  title="Listen to kanji"
+                >
+                  <Volume2 size={14} />
+                  <span className="hidden sm:inline">Listen</span>
+                </button>
+
+                {/* Big Kanji Character */}
+                <span className="text-7xl font-japanese font-black text-text-primary mb-1 mt-2 tracking-tight">
+                  {currentKanji.character}
+                </span>
+
+                {/* Reading Hint / Toggle */}
+                <div className="mt-2 text-center">
+                  {!showReadingHint ? (
+                    <button
+                      onClick={() => setShowReadingHint(true)}
+                      className="text-[11px] text-text-tertiary hover:text-accent underline transition-colors"
+                    >
+                      Show reading hints (On/Kun)
+                    </button>
+                  ) : (
+                    <div className="text-[11px] text-text-secondary font-japanese space-x-3 animate-fade-in bg-surface/80 px-3 py-1 rounded-lg border border-border mt-1">
+                      <span>On: <strong className="text-text-primary">{currentKanji.onyomi.join('、 ') || '—'}</strong></span>
+                      <span>Kun: <strong className="text-text-primary">{currentKanji.kunyomi.join('、 ') || '—'}</strong></span>
+                      <button
+                        onClick={() => setShowReadingHint(false)}
+                        className="text-[10px] text-text-tertiary hover:text-text-primary ml-1"
+                      >
+                        (Hide)
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Prompt */}
+              <p className="text-xs font-semibold text-text-secondary text-center mb-3">
+                Choose the correct English meaning:
+              </p>
+
+              {/* 4 Multiple Choice Option Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {options.map((opt) => {
+                  const isSelected = selectedOption === opt
+                  const isCorrect = opt.toLowerCase() === currentKanji.meaning.toLowerCase()
+
+                  let btnStyle = 'bg-surface border-border text-text-primary hover:border-accent hover:bg-surface-2'
+                  if (isAnswered) {
+                    if (isCorrect) {
+                      btnStyle = 'bg-emerald-500 text-white border-emerald-600 shadow-md font-bold'
+                    } else if (isSelected) {
+                      btnStyle = 'bg-rose-500 text-white border-rose-600 shadow-md font-bold'
+                    } else {
+                      btnStyle = 'opacity-35 border-border text-text-tertiary'
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => handleSelectOption(opt)}
+                      disabled={isAnswered}
+                      className={`p-3 rounded-xl border text-sm font-semibold transition-all text-left flex items-center justify-between ${btnStyle}`}
+                    >
+                      <span>{opt}</span>
+                      {isAnswered && isCorrect && <CheckCircle2 size={16} className="flex-shrink-0" />}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Sub-note */}
+              <p className="text-[11px] text-text-tertiary text-center mt-4">
+                Quiz continues through all {shuffledDeck.length} kanji, or click <strong>Stop & Finish</strong> at any time.
+              </p>
+            </div>
+          ) : (
+            /* Results Summary Screen */
+            <div className="text-center py-4 animate-fade-in space-y-4">
+              <div className="w-16 h-16 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto text-3xl">
+                {accuracyPct >= 80 ? '🏆' : accuracyPct >= 50 ? '🎉' : '💪'}
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-text-primary">
+                  {currentIdx >= shuffledDeck.length - 1
+                    ? 'All Kanjis Completed! お疲れ様でした'
+                    : 'Quiz Session Finished'}
+                </h3>
+                <p className="text-xs text-text-secondary mt-1">
+                  Category: <strong>{selectedCat === 'all' ? 'All Kanjis' : selectedCat}</strong>
+                </p>
+              </div>
+
+              {/* Stats 3-Col Box */}
+              <div className="grid grid-cols-3 gap-2 p-3.5 rounded-xl bg-surface-2 border border-border text-center">
+                <div>
+                  <p className="text-xl font-bold text-text-primary">{score} / {answeredCount}</p>
+                  <p className="text-[10px] text-text-tertiary uppercase font-bold">Score</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-accent">{accuracyPct}%</p>
+                  <p className="text-[10px] text-text-tertiary uppercase font-bold">Accuracy</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-amber-500">🔥 {maxStreak}</p>
+                  <p className="text-[10px] text-text-tertiary uppercase font-bold">Best Streak</p>
+                </div>
+              </div>
+
+              {/* Review Mistakes Section */}
+              {missedKanjis.length > 0 && (
+                <div className="text-left p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 max-h-48 overflow-y-auto">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 mb-2">
+                    <Sparkles size={13} />
+                    <span>Review Missed Kanjis ({missedKanjis.length})</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {missedKanjis.map((mk) => (
+                      <div
+                        key={mk.id}
+                        className="flex items-center gap-2.5 p-2 rounded-lg bg-surface border border-border text-xs"
+                      >
+                        <span className="text-2xl font-japanese font-bold text-text-primary">
+                          {mk.character}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-text-primary truncate">{mk.meaning}</p>
+                          <p className="text-[10px] text-text-tertiary font-japanese truncate">
+                            {mk.onyomi.join('、 ') || mk.kunyomi.join('、 ')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <button
+                  onClick={handleRestart}
+                  className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-accent text-white font-bold text-xs hover:opacity-90 transition-all shadow-xs"
+                >
+                  <RotateCcw size={14} />
+                  <span>Play Again (Same Deck)</span>
+                </button>
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2.5 rounded-xl border border-border bg-surface hover:bg-surface-2 text-xs font-semibold text-text-secondary transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function KanjiTab() {
   const [search, setSearch] = useState('')
   const [cat, setCat] = useState<string>('all')
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+  const [quizOpen, setQuizOpen] = useState(false)
 
   const categories = useMemo(() => ['all', ...Array.from(new Set(n5Kanji110.map(k => k.category)))], [])
 
@@ -1492,9 +1932,20 @@ function KanjiTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex-1"><SearchBar value={search} onChange={setSearch} placeholder="Search kanji, reading, or meaning…" /></div>
+      {/* Search and Practice Quiz Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="flex-1">
+          <SearchBar value={search} onChange={setSearch} placeholder="Search kanji, reading, or meaning…" />
+        </div>
+        <button
+          onClick={() => setQuizOpen(true)}
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-xs font-bold hover:opacity-90 transition-all shadow-xs flex-shrink-0 active:scale-95"
+        >
+          <Flame size={15} />
+          <span>Practice Speed Quiz ({cat === 'all' ? 'All 125' : `${cat} · ${filtered.length}`})</span>
+        </button>
       </div>
+
       <div className="flex gap-1.5 flex-wrap">
         {categories.map(c => (
           <button key={c} onClick={() => setCat(c)} className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${cat === c ? 'bg-accent text-white' : 'bg-surface border border-border text-text-secondary hover:bg-surface-2'}`}>{c}</button>
@@ -1624,6 +2075,14 @@ function KanjiTab() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Practice Speed Quiz Modal */}
+      {quizOpen && (
+        <KanjiQuizModal
+          initialCategory={cat}
+          onClose={() => setQuizOpen(false)}
+        />
       )}
     </div>
   )
@@ -2093,11 +2552,28 @@ function VerbChartTab() {
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
 export default function ReferencePage() {
-  const [activeTab, setActiveTab] = useState<TabId>('greetings')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const categoryParam = (searchParams.get('category') || searchParams.get('tab')) as TabId | null
+  const initialTab: TabId = (categoryParam && TABS.some(t => t.id === categoryParam)) ? categoryParam : 'greetings'
+
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab)
+  const [selectedGroup, setSelectedGroup] = useState<TabGroupId>('all')
   const [viewMode, setViewMode] = useState<'scroll' | 'grid'>('scroll')
   const tabsContainerRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
+
+  // Sync with URL query parameter changes
+  useEffect(() => {
+    if (categoryParam && TABS.some(t => t.id === categoryParam) && categoryParam !== activeTab) {
+      setActiveTab(categoryParam)
+    }
+  }, [categoryParam])
+
+  function handleSelectTab(tabId: TabId) {
+    setActiveTab(tabId)
+    setSearchParams({ category: tabId }, { replace: true })
+  }
 
   function updateScrollButtons() {
     const el = tabsContainerRef.current
@@ -2135,6 +2611,11 @@ export default function ReferencePage() {
     }
   }, [activeTab, viewMode])
 
+  const filteredTabs = useMemo(() => {
+    if (selectedGroup === 'all') return TABS
+    return TABS.filter((t) => t.group === selectedGroup)
+  }, [selectedGroup])
+
   function renderTab() {
     switch (activeTab) {
       case 'greetings': return <GreetingsTab />
@@ -2166,37 +2647,58 @@ export default function ReferencePage() {
         </div>
         <h2 className="text-xl font-bold text-text-primary">N5 Complete Reference</h2>
         <p className="text-sm text-text-secondary mt-1">
-          All essential N5 content organized by topic — 12 sections, exam-focused.
+          All essential N5 content organized by topic — 12 comprehensive sections, exam-focused.
         </p>
       </div>
 
-      {/* Category Navigation Bar — sticky with scroll controls & layout switcher */}
-      <div className="sticky top-0 z-30 -mx-4 px-4 pt-2 pb-2.5 bg-background/90 backdrop-blur-md border-b border-border shadow-sm">
+      {/* Category Navigation Bar — sticky with scroll controls, group filters & layout switcher */}
+      <div className="sticky top-0 z-30 -mx-4 px-4 pt-2.5 pb-2.5 bg-background/90 backdrop-blur-md border-b border-border shadow-sm">
+        {/* Top Control Bar: Group Filter Chips + View Mode Switcher */}
         <div className="flex items-center justify-between gap-2 mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-text-primary uppercase tracking-wider">
-              Categories ({TABS.length})
-            </span>
-            <span className="text-[11px] text-text-tertiary">
-              • {currentTab?.emoji} {currentTab?.label}
-            </span>
+          {/* Category Group Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar-x pb-0.5 flex-1">
+            {TAB_GROUPS.map((group) => {
+              const isGroupActive = selectedGroup === group.id
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => setSelectedGroup(group.id)}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                    isGroupActive
+                      ? 'bg-text-primary text-background shadow-xs'
+                      : 'bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-surface-2'
+                  }`}
+                >
+                  <span>{group.label}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                      isGroupActive
+                        ? 'bg-background/20 text-background'
+                        : 'bg-surface-2 text-text-tertiary'
+                    }`}
+                  >
+                    {group.count}
+                  </span>
+                </button>
+              )
+            })}
           </div>
 
-          {/* View Mode Toggle: Compact Scroll vs. Show All (Grid) */}
+          {/* View Mode Switcher: Single row scroll vs All-categories grid */}
           <button
             onClick={() => setViewMode(m => (m === 'scroll' ? 'grid' : 'scroll'))}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-surface hover:bg-surface-2 text-text-secondary hover:text-text-primary text-xs font-medium transition-colors shadow-sm"
-            title={viewMode === 'scroll' ? 'Show all 12 categories in a grid' : 'Switch to single-line scroll'}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-surface hover:bg-surface-2 text-text-secondary hover:text-text-primary text-xs font-medium transition-colors shadow-sm flex-shrink-0"
+            title={viewMode === 'scroll' ? 'Show all categories in a grid' : 'Switch to compact scroll row'}
           >
             {viewMode === 'scroll' ? (
               <>
                 <LayoutGrid size={13} className="text-accent" />
-                <span className="font-semibold">Show All (12)</span>
+                <span className="font-semibold hidden sm:inline">Show All Grid</span>
               </>
             ) : (
               <>
                 <Rows size={13} className="text-accent" />
-                <span className="font-semibold">Compact Scroll</span>
+                <span className="font-semibold hidden sm:inline">Compact Scroll</span>
               </>
             )}
           </button>
@@ -2224,22 +2726,34 @@ export default function ReferencePage() {
               ref={tabsContainerRef}
               className="flex gap-1.5 overflow-x-auto custom-scrollbar-x pb-2 pt-0.5 scroll-smooth flex-1"
             >
-              {TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  data-tab-id={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={[
-                    'flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0',
-                    activeTab === tab.id
-                      ? 'bg-accent text-white shadow-md scale-[1.02]'
-                      : 'bg-surface border border-border text-text-secondary hover:bg-surface-2 hover:text-text-primary hover:border-border-strong',
-                  ].join(' ')}
-                >
-                  <span className="text-sm">{tab.emoji}</span>
-                  <span>{tab.label}</span>
-                </button>
-              ))}
+              {filteredTabs.map((tab) => {
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    data-tab-id={tab.id}
+                    onClick={() => handleSelectTab(tab.id)}
+                    className={[
+                      'group flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 border',
+                      isActive
+                        ? 'bg-accent text-white border-accent shadow-md scale-[1.02]'
+                        : 'bg-surface border-border text-text-secondary hover:bg-surface-2 hover:text-text-primary hover:border-border-strong',
+                    ].join(' ')}
+                  >
+                    <span className="text-sm">{tab.emoji}</span>
+                    <span>{tab.label}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono transition-colors ${
+                        isActive
+                          ? 'bg-white/25 text-white font-bold'
+                          : 'bg-surface-2 text-text-tertiary group-hover:text-text-secondary'
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                )
+              })}
             </div>
 
             {/* Right mouse scroll button */}
@@ -2257,34 +2771,56 @@ export default function ReferencePage() {
             </button>
           </div>
         ) : (
-          /* Grid View: All 12 categories displayed neatly at once */
+          /* Grid View: Categorized cleanly */
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 pt-1 pb-1">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id)
-                }}
-                className={[
-                  'flex items-center gap-2 p-2.5 rounded-xl text-xs font-semibold transition-all text-left border',
-                  activeTab === tab.id
-                    ? 'bg-accent text-white border-accent shadow-md scale-[1.02]'
-                    : 'bg-surface border-border text-text-secondary hover:bg-surface-2 hover:text-text-primary hover:border-border-strong',
-                ].join(' ')}
-              >
-                <span className="text-base flex-shrink-0">{tab.emoji}</span>
-                <span className="truncate">{tab.label}</span>
-              </button>
-            ))}
+            {filteredTabs.map((tab) => {
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleSelectTab(tab.id)}
+                  className={[
+                    'group flex items-center justify-between gap-2 p-2.5 rounded-xl text-xs font-semibold transition-all text-left border',
+                    isActive
+                      ? 'bg-accent text-white border-accent shadow-md scale-[1.02]'
+                      : 'bg-surface border-border text-text-secondary hover:bg-surface-2 hover:text-text-primary hover:border-border-strong',
+                  ].join(' ')}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-base flex-shrink-0">{tab.emoji}</span>
+                    <span className="truncate">{tab.label}</span>
+                  </div>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono flex-shrink-0 ${
+                      isActive
+                        ? 'bg-white/25 text-white font-bold'
+                        : 'bg-surface-2 text-text-tertiary group-hover:text-text-secondary'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              )
+            })}
           </div>
         )}
       </div>
 
       {/* Tab content */}
       <div className="animate-fade-in" key={activeTab}>
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-xl">{currentTab?.emoji}</span>
-          <h3 className="text-lg font-bold text-text-primary">{currentTab?.label}</h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pb-3 mb-4 border-b border-border/60">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">{currentTab?.emoji}</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-bold text-text-primary">{currentTab?.label}</h3>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent font-semibold border border-accent/20 font-mono">
+                  {currentTab?.count} items
+                </span>
+              </div>
+              <p className="text-xs text-text-secondary mt-0.5">{currentTab?.description}</p>
+            </div>
+          </div>
         </div>
         {renderTab()}
       </div>

@@ -9,6 +9,7 @@ import PracticePage    from '@/pages/PracticePage'
 import RevisionPage    from '@/pages/RevisionPage'
 import SettingsPage    from '@/pages/SettingsPage'
 import ReferencePage   from '@/pages/ReferencePage'
+import KanaPage        from '@/pages/KanaPage'
 import AboutPage       from '@/pages/AboutPage'
 
 export const router = createBrowserRouter([
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true,                         element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard',                   element: <DashboardPage /> },
+      { path: 'kana',                        element: <KanaPage /> },
       { path: 'learn',                       element: <LearnPage /> },
       { path: 'learn/:lessonId',             element: <LessonPage /> },
       { path: 'grammar',                     element: <GrammarPage /> },
@@ -29,8 +31,8 @@ export const router = createBrowserRouter([
       { path: 'settings',                    element: <SettingsPage /> },
       { path: 'about',                       element: <AboutPage /> },
       // Retired pages — redirect to their new home in N5 Reference
-      { path: 'kanji',                       element: <Navigate to="/reference" replace /> },
-      { path: 'kanji/:kanjiId',              element: <Navigate to="/reference" replace /> },
+      { path: 'kanji',                       element: <Navigate to="/reference?category=kanji" replace /> },
+      { path: 'kanji/:kanjiId',              element: <Navigate to="/reference?category=kanji" replace /> },
       { path: 'progress',                    element: <Navigate to="/dashboard" replace /> },
     ],
   },
