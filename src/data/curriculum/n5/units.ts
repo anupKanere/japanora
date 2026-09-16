@@ -1,0 +1,272 @@
+import type { CurriculumUnit } from '@/types'
+
+export const n5Units: CurriculumUnit[] = [
+  {
+    id: 'n5-unit-01',
+    level: 'N5',
+    unitNumber: 1,
+    title: 'Foundation & Basics',
+    titleJa: 'きそ',
+    description: 'Pronunciation, basic sentence patterns, essential vocabulary, particles は・が・を・に・で・の',
+    prerequisiteUnitIds: [],
+    lessons: [
+      {
+        id: 'n5-lesson-001',
+        unitId: 'n5-unit-01',
+        lessonNumber: 1,
+        title: 'Basic Sentence Building',
+        titleJa: 'きほんぶんけい',
+        description: 'Build your first complete Japanese sentences using the Time + Place + Object + Verb pattern.',
+        estimatedMinutes: 30,
+        grammarPoints: ['grammar-wa', 'grammar-wo', 'grammar-ni', 'grammar-de', 'grammar-no'],
+        vocabularyIds: ['vocab-001', 'vocab-010', 'vocab-011', 'vocab-012', 'vocab-020', 'vocab-021', 'vocab-030', 'vocab-031', 'vocab-034', 'vocab-035', 'vocab-040', 'vocab-041', 'vocab-042', 'vocab-043', 'vocab-050', 'vocab-051', 'vocab-052', 'vocab-053', 'vocab-054', 'vocab-055'],
+        kanjiIds: ['kanji-002', 'kanji-005', 'kanji-006', 'kanji-007', 'kanji-008', 'kanji-009', 'kanji-010'],
+      },
+      {
+        id: 'n5-lesson-002',
+        unitId: 'n5-unit-01',
+        lessonNumber: 2,
+        title: 'Nouns & Descriptions',
+        titleJa: 'めいし',
+        description: 'Learn to identify and describe things using これ / それ / あれ and basic nouns.',
+        estimatedMinutes: 25,
+        grammarPoints: ['grammar-desu', 'grammar-dewa-arimasen'],
+        vocabularyIds: ['vocab-001', 'vocab-040', 'vocab-043', 'vocab-044'],
+        kanjiIds: ['kanji-004'],
+      },
+      {
+        id: 'n5-lesson-003',
+        unitId: 'n5-unit-01',
+        lessonNumber: 3,
+        title: 'Questions & Answers',
+        titleJa: 'しつもん',
+        description: 'Ask and answer basic questions using か, なに, どこ, だれ, いつ.',
+        estimatedMinutes: 30,
+        grammarPoints: ['grammar-desu', 'grammar-wa'],
+        vocabularyIds: [],
+        kanjiIds: [],
+      },
+    ],
+  },
+  {
+    id: 'n5-unit-02',
+    level: 'N5',
+    unitNumber: 2,
+    title: 'Verbs & Actions',
+    titleJa: 'どうし',
+    description: 'Master the ます form, negative and past tenses, verb groups, and action sentences.',
+    prerequisiteUnitIds: ['n5-unit-01'],
+    lessons: [
+      {
+        id: 'n5-lesson-004',
+        unitId: 'n5-unit-02',
+        lessonNumber: 1,
+        title: 'ます Form: Polite Verbs',
+        titleJa: 'ていねいけい',
+        description: 'Learn how to conjugate Group 1, Group 2 and irregular verbs into polite ます form.',
+        estimatedMinutes: 35,
+        grammarPoints: ['grammar-masu'],
+        vocabularyIds: ['vocab-050', 'vocab-051', 'vocab-052', 'vocab-053', 'vocab-054', 'vocab-055', 'vocab-056', 'vocab-057', 'vocab-058', 'vocab-059', 'vocab-060'],
+        kanjiIds: ['kanji-006', 'kanji-007', 'kanji-008', 'kanji-009', 'kanji-010'],
+      },
+      {
+        id: 'n5-lesson-005',
+        unitId: 'n5-unit-02',
+        lessonNumber: 2,
+        title: 'Negative Form: ません',
+        titleJa: 'ひていけい',
+        description: 'Learn how to say you don\'t do something using ません.',
+        estimatedMinutes: 20,
+        grammarPoints: ['grammar-masen'],
+        vocabularyIds: [],
+        kanjiIds: [],
+      },
+      {
+        id: 'n5-lesson-006',
+        unitId: 'n5-unit-02',
+        lessonNumber: 3,
+        title: 'Past Form: ました / ませんでした',
+        titleJa: 'かこけい',
+        description: 'Talk about things you did or didn\'t do in the past.',
+        estimatedMinutes: 25,
+        grammarPoints: ['grammar-mashita'],
+        vocabularyIds: [],
+        kanjiIds: [],
+      },
+      {
+        id: 'n5-lesson-007',
+        unitId: 'n5-unit-02',
+        lessonNumber: 4,
+        title: 'て Form & Ongoing Actions',
+        titleJa: 'てけい',
+        description: 'Learn the て form for ongoing actions, requests, and connecting sentences.',
+        estimatedMinutes: 40,
+        grammarPoints: ['grammar-te-imasu', 'grammar-te-kudasai'],
+        vocabularyIds: [],
+        kanjiIds: [],
+      },
+      {
+        id: 'n5-lesson-008',
+        unitId: 'n5-unit-02',
+        lessonNumber: 5,
+        title: 'Wants & Desires: たいです',
+        titleJa: 'きぼう',
+        description: 'Express what you want to do using たいです.',
+        estimatedMinutes: 20,
+        grammarPoints: ['grammar-tai'],
+        vocabularyIds: [],
+        kanjiIds: [],
+      },
+    ],
+  },
+  {
+    id: 'n5-unit-03',
+    level: 'N5',
+    unitNumber: 3,
+    title: 'Existence & Location',
+    titleJa: 'そんざい',
+    description: 'Learn to express where things and people are using あります and います.',
+    prerequisiteUnitIds: ['n5-unit-01'],
+    lessons: [
+      {
+        id: 'n5-lesson-009',
+        unitId: 'n5-unit-03',
+        lessonNumber: 1,
+        title: 'Objects: あります',
+        titleJa: 'もの・あります',
+        description: 'Say where objects are located using あります.',
+        estimatedMinutes: 25,
+        grammarPoints: ['grammar-arimasu'],
+        vocabularyIds: ['vocab-030', 'vocab-031', 'vocab-032', 'vocab-033', 'vocab-034', 'vocab-035', 'vocab-036'],
+        kanjiIds: ['kanji-011'],
+      },
+      {
+        id: 'n5-lesson-010',
+        unitId: 'n5-unit-03',
+        lessonNumber: 2,
+        title: 'People & Animals: います',
+        titleJa: 'ひと・います',
+        description: 'Say where people and animals are located using います.',
+        estimatedMinutes: 25,
+        grammarPoints: ['grammar-imasu'],
+        vocabularyIds: [],
+        kanjiIds: [],
+      },
+    ],
+  },
+  {
+    id: 'n5-unit-04',
+    level: 'N5',
+    unitNumber: 4,
+    title: 'Adjectives',
+    titleJa: 'けいようし',
+    description: 'Learn い-adjectives and な-adjectives in present, past, positive and negative forms.',
+    prerequisiteUnitIds: ['n5-unit-01'],
+    lessons: [
+      {
+        id: 'n5-lesson-011',
+        unitId: 'n5-unit-04',
+        lessonNumber: 1,
+        title: 'い-Adjectives',
+        titleJa: 'いけいようし',
+        description: 'Conjugate い-adjectives and use them to describe nouns.',
+        estimatedMinutes: 30,
+        grammarPoints: [],
+        vocabularyIds: ['vocab-090', 'vocab-091', 'vocab-092', 'vocab-093'],
+        kanjiIds: [],
+      },
+      {
+        id: 'n5-lesson-012',
+        unitId: 'n5-unit-04',
+        lessonNumber: 2,
+        title: 'な-Adjectives & Likes',
+        titleJa: 'なけいようし',
+        description: 'Learn な-adjectives including すき and きらい.',
+        estimatedMinutes: 30,
+        grammarPoints: [],
+        vocabularyIds: ['vocab-094', 'vocab-095'],
+        kanjiIds: [],
+      },
+    ],
+  },
+  {
+    id: 'n5-unit-05',
+    level: 'N5',
+    unitNumber: 5,
+    title: 'Family & People',
+    titleJa: 'かぞく',
+    description: 'Talk about family members and describe people.',
+    prerequisiteUnitIds: ['n5-unit-01', 'n5-unit-04'],
+    lessons: [
+      {
+        id: 'n5-lesson-013',
+        unitId: 'n5-unit-05',
+        lessonNumber: 1,
+        title: 'Family Members',
+        titleJa: 'かぞくのことば',
+        description: 'Learn in-group vs out-group family vocabulary.',
+        estimatedMinutes: 30,
+        grammarPoints: ['grammar-wa', 'grammar-desu'],
+        vocabularyIds: ['vocab-070', 'vocab-071', 'vocab-072', 'vocab-073'],
+        kanjiIds: [],
+      },
+    ],
+  },
+  {
+    id: 'n5-unit-06',
+    level: 'N5',
+    unitNumber: 6,
+    title: 'Numbers, Time & Dates',
+    titleJa: 'すうじ・じかん',
+    description: 'Master numbers, telling the time, days of the week, and dates.',
+    prerequisiteUnitIds: ['n5-unit-01'],
+    lessons: [
+      {
+        id: 'n5-lesson-014',
+        unitId: 'n5-unit-06',
+        lessonNumber: 1,
+        title: 'Numbers 1–100',
+        titleJa: 'すうじ',
+        description: 'Count from 1 to 100 and use numbers in context.',
+        estimatedMinutes: 30,
+        grammarPoints: [],
+        vocabularyIds: ['vocab-080', 'vocab-081', 'vocab-082'],
+        kanjiIds: [],
+      },
+      {
+        id: 'n5-lesson-015',
+        unitId: 'n5-unit-06',
+        lessonNumber: 2,
+        title: 'Telling the Time',
+        titleJa: 'じかん',
+        description: 'Tell the time and talk about daily schedules.',
+        estimatedMinutes: 25,
+        grammarPoints: ['grammar-ni'],
+        vocabularyIds: [],
+        kanjiIds: [],
+      },
+    ],
+  },
+]
+
+// Helper: get all lessons in order
+export const getAllLessons = () =>
+  n5Units.flatMap((unit) => unit.lessons)
+
+// Helper: find lesson by ID
+export const getLessonById = (lessonId: string) =>
+  getAllLessons().find((l) => l.id === lessonId)
+
+// Helper: find unit by lesson ID
+export const getUnitByLessonId = (lessonId: string) =>
+  n5Units.find((unit) => unit.lessons.some((l) => l.id === lessonId))
+
+// Helper: get next lesson
+export const getNextLesson = (currentLessonId: string) => {
+  const all = getAllLessons()
+  const idx = all.findIndex((l) => l.id === currentLessonId)
+  return idx >= 0 && idx < all.length - 1 ? all[idx + 1] : null
+}
+
+// Total lesson count
+export const TOTAL_LESSONS = getAllLessons().length
