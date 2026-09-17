@@ -32,7 +32,7 @@ const navItems: NavItem[] = [
   { to: '/grammar',    icon: <FileText size={17} />,        label: 'Grammar',      labelJa: '文法'       },
   { to: '/learn',      icon: <BookOpen size={17} />,        label: 'Learn',        labelJa: 'まなぶ'     },
   { to: '/practice',   icon: <Dumbbell size={17} />,        label: 'Practice',     labelJa: '練習'       },
-  { to: '/revision',   icon: <RefreshCcw size={17} />,      label: 'Revision',     labelJa: '復習', badge: 12 },
+  { to: '/revision',   icon: <RefreshCcw size={17} />,      label: 'Revision',     labelJa: '復習' },
 ]
 
 const bottomNavItems: NavItem[] = [

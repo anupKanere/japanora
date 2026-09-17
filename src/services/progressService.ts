@@ -158,13 +158,38 @@ function makeGrammarProgress(
   }
 }
 
+export function createCleanProgress(): LearnerProgress {
+  return {
+    learnerId: 'learner-001',
+    currentLevel: 'N5',
+    currentLessonId: 'n5-lesson-001',
+    lessonProgress: {
+      'n5-lesson-001': {
+        lessonId: 'n5-lesson-001',
+        status: 'available',
+        attempts: 0,
+        exerciseScores: {},
+      },
+    },
+    vocabProgress: {},
+    kanjiProgress: {},
+    grammarProgress: {},
+    studyStreak: 0,
+    longestStreak: 0,
+    lastStudyDate: '',
+    studySessions: [],
+    weakAreas: [],
+    totalStudyMinutes: 0,
+  }
+}
+
 export const progressService = {
   getProgress(): LearnerProgress {
     const stored = storageService.get<LearnerProgress | null>(PROGRESS_KEY, null)
     if (!stored) {
-      const initial = createInitialProgress()
-      storageService.set(PROGRESS_KEY, initial)
-      return initial
+      const clean = createCleanProgress()
+      storageService.set(PROGRESS_KEY, clean)
+      return clean
     }
     return stored
   },
@@ -307,6 +332,12 @@ export const progressService = {
     this.saveProgress(progress)
   },
 
+  resolveWeakArea(category: MistakeCategory): void {
+    const progress = this.getProgress()
+    progress.weakAreas = progress.weakAreas.filter((c) => c !== category)
+    this.saveProgress(progress)
+  },
+
   updateStreak(): void {
     const progress = this.getProgress()
     const today = new Date().toISOString().split('T')[0]
@@ -439,6 +470,42 @@ export const progressService = {
   },
 
   resetProgress(): void {
-    storageService.remove(PROGRESS_KEY)
+    const clean = createCleanProgress()
+    this.saveProgress(clean)
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('japanora_daily_goals')
+    }
+  },
+
+  loadSampleDemoProgress(): void {
+    const sample = createInitialProgress()
+    this.saveProgress(sample)
+  },
+
+  exportBackupData(): string {
+    const data = {
+      app: 'JAPANORA',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      progress: this.getProgress(),
+      settings: storageService.get('app_settings', {}),
+    }
+    return JSON.stringify(data, null, 2)
+  },
+
+  importBackupData(jsonString: string): boolean {
+    try {
+      const data = JSON.parse(jsonString)
+      if (data && data.progress && typeof data.progress === 'object') {
+        this.saveProgress(data.progress)
+        if (data.settings && typeof data.settings === 'object') {
+          storageService.set('app_settings', data.settings)
+        }
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
   },
 }

@@ -288,9 +288,11 @@ export interface RevisionItem {
 export interface AppSettings {
   displayMode: 'hiragana-only' | 'hiragana-kanji'
   showFurigana: boolean
+  showRomaji: boolean
   theme: 'light' | 'dark' | 'system'
   dailyGoalMinutes: number
   soundEnabled: boolean
+  speechRate: number              // e.g. 0.75, 0.85, 1.0
   autoPlayAudio: boolean
   revisionReminderEnabled: boolean
   revisionReminderTime: string    // HH:mm

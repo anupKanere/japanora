@@ -14,45 +14,12 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { getNextLesson, getUnitByLessonId } from '@/data/curriculum/n5/units'
-import lesson001 from '@/data/curriculum/n5/lessons/lesson-001'
-import lesson002 from '@/data/curriculum/n5/lessons/lesson-002'
-import lesson003 from '@/data/curriculum/n5/lessons/lesson-003'
-import lesson004 from '@/data/curriculum/n5/lessons/lesson-004'
-import lesson005 from '@/data/curriculum/n5/lessons/lesson-005'
-import lesson006 from '@/data/curriculum/n5/lessons/lesson-006'
-import lesson007 from '@/data/curriculum/n5/lessons/lesson-007'
-import lesson008 from '@/data/curriculum/n5/lessons/lesson-008'
-import lesson009 from '@/data/curriculum/n5/lessons/lesson-009'
-import lesson010 from '@/data/curriculum/n5/lessons/lesson-010'
-import lesson011 from '@/data/curriculum/n5/lessons/lesson-011'
-import lesson012 from '@/data/curriculum/n5/lessons/lesson-012'
-import lesson013 from '@/data/curriculum/n5/lessons/lesson-013'
-import lesson014 from '@/data/curriculum/n5/lessons/lesson-014'
-import lesson015 from '@/data/curriculum/n5/lessons/lesson-015'
+import { LESSON_REGISTRY } from '@/data/curriculum/n5/registry'
 import { ExerciseRenderer } from '@/features/exercises/ExerciseRenderer'
 import { HomeworkReview } from '@/features/lessons/HomeworkReview'
 import { useApp } from '@/app/AppContext'
 import { progressService } from '@/services/progressService'
 import type { LessonContent } from '@/types'
-
-// ─── Lesson registry — add new lesson files here ────────────────────────────
-const LESSON_REGISTRY: Record<string, LessonContent> = {
-  'n5-lesson-001': lesson001,
-  'n5-lesson-002': lesson002,
-  'n5-lesson-003': lesson003,
-  'n5-lesson-004': lesson004,
-  'n5-lesson-005': lesson005,
-  'n5-lesson-006': lesson006,
-  'n5-lesson-007': lesson007,
-  'n5-lesson-008': lesson008,
-  'n5-lesson-009': lesson009,
-  'n5-lesson-010': lesson010,
-  'n5-lesson-011': lesson011,
-  'n5-lesson-012': lesson012,
-  'n5-lesson-013': lesson013,
-  'n5-lesson-014': lesson014,
-  'n5-lesson-015': lesson015,
-}
 
 type Tab = 'objectives' | 'explanation' | 'examples' | 'practice' | 'homework' | 'review'
 

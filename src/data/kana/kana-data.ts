@@ -6,6 +6,8 @@
  * - 33 Yōon (Combination glides with small ya/yu/yo)
  */
 
+import { settingsService } from '@/services/settingsService'
+
 export interface KanaExample {
   japanese: string
   romaji: string
@@ -845,13 +847,16 @@ export const allKana: KanaEntry[] = [...seionKana, ...dakuonKana, ...yoonKana]
  * Uses the Web Speech Synthesis API with a Japanese voice to play authentic audio.
  * Zero external audio downloads needed, instant playback in modern browsers.
  */
-export function playKanaAudio(text: string): void {
+export function playKanaAudio(text: string, customRate?: number): void {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
   try {
+    const settings = settingsService.getSettings()
+    if (settings.soundEnabled === false) return
+
     window.speechSynthesis.cancel() // Stop any previous speech
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = 'ja-JP'
-    utterance.rate = 0.85 // Clear, slightly slower for learning
+    utterance.rate = customRate ?? settings.speechRate ?? 0.85
     utterance.pitch = 1.0
 
     // Pick a high-quality Japanese voice if available

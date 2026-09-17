@@ -131,7 +131,7 @@ function QuickCard({
 // ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { progress } = useApp()
+  const { progress, settings } = useApp()
   const navigate = useNavigate()
 
   const overallPercent  = progressService.getOverallProgress()
@@ -521,7 +521,7 @@ export default function DashboardPage() {
           {/* Daily Micro-Goals Checkpoints */}
           <div className="pt-3 border-t border-border space-y-2">
             <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider flex items-center justify-between">
-              <span>Today's Study Checkpoints / 今日の目標</span>
+              <span>Today's Checkpoints ({settings.dailyGoalMinutes}m goal) / 今日の目標</span>
               <span className="font-mono">
                 {Object.values(dailyGoals).filter(Boolean).length}/3 Done
               </span>

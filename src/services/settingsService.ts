@@ -6,9 +6,11 @@ const SETTINGS_KEY = 'app_settings'
 const DEFAULT_SETTINGS: AppSettings = {
   displayMode: 'hiragana-only',   // hiragana-first as required
   showFurigana: false,
+  showRomaji: true,
   theme: 'light',
   dailyGoalMinutes: 20,
   soundEnabled: true,
+  speechRate: 0.85,
   autoPlayAudio: false,
   revisionReminderEnabled: true,
   revisionReminderTime: '09:00',
