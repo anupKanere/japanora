@@ -20,23 +20,29 @@ const lesson002: LessonContent = {
   pattern: '[これ/それ/あれ] は [Noun] です',
   patternJa: '[これ] は [めいし] です',
 
-  grammarExplanation: `Japanese has a three-way demonstrative system based on distance:
+  grammarExplanation: `Japanese has a three-way demonstrative system based on relative distance from the speaker and listener:
 
-**これ / この** — near the **speaker** ("this")
-**それ / その** — near the **listener** ("that")
-**あれ / あの** — far from **both** ("that over there")
+**Demonstratives by Distance:**
+- これ / この — near the speaker ("this")
+- それ / その — near the listener ("that")
+- あれ / あの — far from both speaker and listener ("that over there")
+- どれ / どの — question word ("which")
 
-**これ・それ・あれ** stand alone as pronouns:
-→ これは ほんです。(This is a book.)
+**Standalone Pronouns: これ・それ・あれ**
+These replace the noun entirely and stand by themselves:
+→ これは ほんです。 (This is a book.)
+→ それは なんですか。 (What is that?)
 
-**この・その・あの** must be followed by a noun:
-→ この ほんは おもしろいです。(This book is interesting.)
+**Noun Modifiers: この・その・あの**
+These MUST be followed immediately by a noun:
+→ この ほんは おもしろいです。 (This book is interesting.)
+→ その ペンは わたしのです。 (That pen is mine.)
 
-**The copula です:**
-Affirmative: 〜です (is/am/are)
-Negative: 〜ではありません or じゃないです (is not)
-Past: 〜でした (was)
-Past negative: 〜ではありませんでした (was not)`,
+**The Copula です (All 4 Tense Forms):**
+Affirmative: 〜です (is / am / are)
+Negative: 〜ではありません / 〜じゃないです (is not)
+Past: 〜でした (was / were)
+Past Negative: 〜ではありませんでした (was not / were not)`,
 
   notes: [
     'これ / それ / あれ are standalone pronouns; この / その / あの always precede a noun.',

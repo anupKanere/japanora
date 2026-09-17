@@ -14,6 +14,12 @@ import lesson012 from './lessons/lesson-012'
 import lesson013 from './lessons/lesson-013'
 import lesson014 from './lessons/lesson-014'
 import lesson015 from './lessons/lesson-015'
+import lesson016 from './lessons/lesson-016'
+import lesson017 from './lessons/lesson-017'
+import lesson018 from './lessons/lesson-018'
+import lesson019 from './lessons/lesson-019'
+import lesson020 from './lessons/lesson-020'
+import lesson021 from './lessons/lesson-021'
 
 export const LESSON_REGISTRY: Record<string, LessonContent> = {
   'n5-lesson-001': lesson001,
@@ -31,6 +37,12 @@ export const LESSON_REGISTRY: Record<string, LessonContent> = {
   'n5-lesson-013': lesson013,
   'n5-lesson-014': lesson014,
   'n5-lesson-015': lesson015,
+  'n5-lesson-016': lesson016,
+  'n5-lesson-017': lesson017,
+  'n5-lesson-018': lesson018,
+  'n5-lesson-019': lesson019,
+  'n5-lesson-020': lesson020,
+  'n5-lesson-021': lesson021,
 }
 
 // ─── Supplementary curated high-yield exercises for standalone practice ───────

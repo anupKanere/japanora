@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Lock,
+  Unlock,
   CheckCircle2,
   Circle,
   PlayCircle,
@@ -59,12 +60,25 @@ export default function LearnPage() {
   const { progress } = useApp()
   const navigate = useNavigate()
   const [unitFilter, setUnitFilter] = useState<string>('all')
+  const [freeMode, setFreeMode] = useState<boolean>(() => {
+    return localStorage.getItem('japanora_free_study_mode') === 'true'
+  })
+
+  function toggleFreeMode() {
+    setFreeMode((prev) => {
+      const next = !prev
+      localStorage.setItem('japanora_free_study_mode', String(next))
+      return next
+    })
+  }
 
   const allLessons = useMemo(() => n5Units.flatMap((u) => u.lessons), [])
 
   function getLessonStatus(lessonId: string): LessonStatus {
     const lp = progress.lessonProgress[lessonId]
     if (lp) return lp.status
+
+    if (freeMode) return 'available'
 
     // Determine from curriculum order
     const idx = allLessons.findIndex((l) => l.id === lessonId)
@@ -86,7 +100,7 @@ export default function LearnPage() {
 
     // 3. Fallback
     return allLessons[0]
-  }, [allLessons, progress.lessonProgress])
+  }, [allLessons, progress.lessonProgress, freeMode])
 
   const nextLessonUnit = useMemo(() => {
     if (!nextLesson) return null
@@ -106,18 +120,68 @@ export default function LearnPage() {
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-accent-soft text-accent flex items-center justify-center">
+      {/* Header with Free Study Mode Toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-accent-soft text-accent flex items-center justify-center">
+              <BookOpen size={18} />
+            </div>
+            <h2 className="text-xl font-bold text-text-primary">N5 Curriculum</h2>
+            <span className="text-xs text-text-tertiary font-japanese font-medium">コース学習</span>
+          </div>
+          <p className="text-sm text-text-secondary mt-1">
+            A structured pedagogical path from absolute beginner to JLPT N5 certified proficiency.
+          </p>
+        </div>
+
+        <button
+          onClick={toggleFreeMode}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+            freeMode
+              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+              : 'bg-surface border-border text-text-secondary hover:bg-surface-2 hover:text-text-primary'
+          }`}
+          title={freeMode ? 'Click to re-enable sequential locking' : 'Click to unlock all lessons for flexible review'}
+        >
+          {freeMode ? <Unlock size={14} className="text-emerald-500" /> : <Lock size={14} className="text-text-tertiary" />}
+          <span>{freeMode ? 'Free Study Mode: ON' : 'Unlock All Lessons'}</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${freeMode ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-surface-2 text-text-tertiary'}`}>
+            {freeMode ? 'Unlocked' : 'Sequential'}
+          </span>
+        </button>
+      </div>
+
+      {/* Quick Conjugation Reference Banner */}
+      <div className="bg-gradient-to-r from-purple-500/10 via-accent/5 to-surface rounded-2xl border border-purple-500/20 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-card">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center flex-shrink-0">
             <BookOpen size={18} />
           </div>
-          <h2 className="text-xl font-bold text-text-primary">N5 Curriculum</h2>
-          <span className="text-xs text-text-tertiary font-japanese font-medium">コース学習</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-bold text-text-primary">Conjugation & Formation Rulebooks</h4>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold">New</span>
+            </div>
+            <p className="text-xs text-text-secondary mt-0.5">
+              Study the exact formulas for ます, て, た, ない, and なかった verb forms and 4 adjective inflections in Reference.
+            </p>
+          </div>
         </div>
-        <p className="text-sm text-text-secondary mt-1">
-          A structured pedagogical path from absolute beginner to JLPT N5 certified proficiency.
-        </p>
+        <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
+          <button
+            onClick={() => navigate('/reference?tab=verbs')}
+            className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-surface border border-border text-xs font-bold text-text-secondary hover:bg-surface-2 hover:text-accent transition-all shadow-sm"
+          >
+            Verb Rules
+          </button>
+          <button
+            onClick={() => navigate('/reference?tab=adj')}
+            className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-surface border border-border text-xs font-bold text-text-secondary hover:bg-surface-2 hover:text-accent transition-all shadow-sm"
+          >
+            Adjective Rules
+          </button>
+        </div>
       </div>
 
       {/* Continue Learning Active Hero Card */}
@@ -184,7 +248,7 @@ export default function LearnPage() {
               {n5Units.filter((u) => u.lessons.every((l) => getLessonStatus(l.id) === 'completed')).length} / {n5Units.length}
             </span>
           </p>
-          <p className="text-[10px] text-text-tertiary mt-1">Units 1–4</p>
+          <p className="text-[10px] text-text-tertiary mt-1">Units 1–{n5Units.length}</p>
         </div>
       </div>
 

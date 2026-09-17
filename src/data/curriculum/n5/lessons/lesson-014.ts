@@ -17,30 +17,63 @@ const lesson014: LessonContent = {
   ],
   pattern: '[Number] + Counter',
   patternJa: 'かず と じょすうし',
-  grammarExplanation: `**Sino-Japanese numbers (used with most counters):**
+  grammarExplanation: `Japanese numbers are logical and systematic. Numbers 1–10 form the building blocks for all higher numbers.
 
-1〜10: いち・に・さん・し(よん)・ご・ろく・なな(しち)・はち・く(きゅう)・じゅう
+**Numbers 1 to 10 (Sino-Japanese):**
 
-11〜19: じゅういち、じゅうに … じゅうく
-20〜90: にじゅう、さんじゅう … きゅうじゅう
-21: にじゅういち、39: さんじゅうく, etc.
+| Number | Kanji | Hiragana | Romaji |
+| :--- | :--- | :--- | :--- |
+| 1 | 一 | いち | ichi |
+| 2 | 二 | に | ni |
+| 3 | 三 | さん | san |
+| 4 | 四 | よん / し | yon / shi |
+| 5 | 五 | ご | go |
+| 6 | 六 | ろく | roku |
+| 7 | 七 | なな / しち | nana / shichi |
+| 8 | 八 | はち | hachi |
+| 9 | 九 | きゅう / く | kyuu / ku |
+| 10 | 十 | じゅう | juu |
 
-100: ひゃく / 200: にひゃく / 300: さんびゃく / 600: ろっぴゃく / 800: はっぴゃく
-1000: せん / 2000: にせん / 3000: さんぜん / 8000: はっせん
-10,000: いちまん
+**Numbers 11 to 99 (The Additive Formula):**
+- 11 to 19: じゅう + [1–9] (e.g. じゅういち = 11, じゅうご = 15, じゅうく = 19)
+- Tens (20, 30... 90): [2–9] + じゅう (e.g. にじゅう = 20, さんじゅう = 30, はちじゅう = 80)
+- Combined: [Tens] + [Ones] (e.g. にじゅうご = 25, さんじゅうく = 39, きゅうじゅうきゅう = 99)
 
-**Native Japanese numbers (ひとつ counting):**
-ひとつ(1)・ふたつ(2)・みっつ(3)・よっつ(4)・いつつ(5)・
-むっつ(6)・ななつ(7)・やっつ(8)・ここのつ(9)・とお(10)
+**Larger Numbers (Hundreds, Thousands, Ten-Thousands):**
 
-Use native numbers for: generic counting, age with さい sometimes, items without specific counter.
+| Value | Kanji | Reading | Sound Change Alert |
+| :--- | :--- | :--- | :--- |
+| 100 | 百 | ひゃく | Regular |
+| 200 | 二百 | にひゃく | Regular |
+| 300 | 三百 | さんびゃく | ⚠️ ひゃく → びゃく |
+| 600 | 六百 | ろっぴゃく | ⚠️ ひゃく → ぴゃく |
+| 800 | 八百 | はっぴゃく | ⚠️ ひゃく → ぴゃく |
+| 1,000 | 千 | せん | Regular |
+| 3,000 | 三千 | さんぜん | ⚠️ せん → ぜん |
+| 8,000 | 八千 | はっせん | ⚠️ せん → せん (geminate) |
+| 10,000 | 一万 | いちまん | Base unit for Japanese counting |
 
-**Common counters:**
-- 円 (えん) = yen: ひゃくえん = ¥100
-- 本 (ほん/ぼん/ぽん) = long objects: いっぽん、にほん、さんぼん
-- 枚 (まい) = flat objects: いちまい、にまい
-- 冊 (さつ) = books: いっさつ、にさつ
-- 台 (だい) = machines: いちだい、にだい`,
+**Native Japanese Numbers (ひとつ Counting System):**
+
+| Count | Kanji | Hiragana | Meaning |
+| :--- | :--- | :--- | :--- |
+| 1 | 一つ | ひとつ | 1 general object |
+| 2 | 二つ | ふたつ | 2 general objects |
+| 3 | 三つ | みっつ | 3 general objects |
+| 4 | 四つ | よっつ | 4 general objects |
+| 5 | 五つ | いつつ | 5 general objects |
+| 6 | 六つ | むっつ | 6 general objects |
+| 7 | 七つ | ななつ | 7 general objects |
+| 8 | 八つ | やっつ | 8 general objects |
+| 9 | 九つ | ここのつ | 9 general objects |
+| 10 | 十 | とお | 10 general objects |
+
+**Essential Everyday Counters:**
+- 円 (えん) = Japanese currency (e.g. ひゃくえん = ¥100)
+- 本 (ほん) = Long cylindrical items (e.g. ペンが いっぽん = one pen)
+- 枚 (まい) = Thin flat items (e.g. シャツが にまい = two shirts)
+- 冊 (さつ) = Bound books (e.g. ほんが いっさつ = one book)
+- 台 (だい) = Machines and vehicles (e.g. くるまが いちだい = one car)`,
   notes: [
     'し and しち are less common than よん and なな in modern speech.',
     '300 (さんびゃく), 600 (ろっぴゃく), 800 (はっぴゃく) have sound changes.',

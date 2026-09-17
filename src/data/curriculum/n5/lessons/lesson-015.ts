@@ -18,33 +18,46 @@ const lesson015: LessonContent = {
   ],
   pattern: '[Time] に [Verb]',
   patternJa: '[じかん] に [どうし]',
-  grammarExplanation: `**Telling the time:**
-Hours: 〜じ (o'clock)
-- いちじ(1:00) / にじ(2:00) / さんじ(3:00) / よじ(4:00) / ごじ(5:00)
-- ろくじ(6:00) / しちじ(7:00) / はちじ(8:00) / くじ(9:00)
-- じゅうじ(10:00) / じゅういちじ(11:00) / じゅうにじ(12:00)
+  grammarExplanation: `Telling time in Japanese combines hours (〜時 · ji) and minutes (〜分 · fun/pun).
 
-Minutes: 〜ふん / 〜ぷん (sound change!)
-- いっぷん(1分) / にふん(2分) / さんぷん(3分) / よんふん(4分)
-- ごふん(5分) / ろっぷん(6分) / ななふん(7分) / はっぷん(8分)
-- きゅうふん(9分) / じゅっぷん/じっぷん(10分)
+**Clock Hours (1:00 to 12:00):**
 
-Half past: 〜じはん (e.g. さんじはん = 3:30)
+| Time | Kanji | Hiragana | Special Reading Alert |
+| :--- | :--- | :--- | :--- |
+| 1:00 | 一時 | いちじ | Regular |
+| 2:00 | 二時 | にじ | Regular |
+| 3:00 | 三時 | さんじ | Regular |
+| 4:00 | 四時 | よじ | ⚠️ Not よんじ or しじ! |
+| 5:00 | 五時 | ごじ | Regular |
+| 6:00 | 六時 | ろくじ | Regular |
+| 7:00 | 七時 | しちじ | ⚠️ Commonly しちじ (not ななじ) |
+| 8:00 | 八時 | はちじ | Regular |
+| 9:00 | 九時 | くじ | ⚠️ Not きゅうじ! |
+| 10:00 | 十時 | じゅうじ | Regular |
+| 11:00 | 十一時 | じゅういちじ | Regular |
+| 12:00 | 十二時 | じゅうにじ | Regular |
 
-AM/PM: ごぜん (AM) / ごご (PM)
-→ ごぜん はちじ = 8:00 AM
-→ ごご さんじ じゅうごふん = 3:15 PM
+**Minutes & Half-Past (〜分 · ふん / ぷん):**
+- 1 min: いっぷん / 2 mins: にふん / 3 mins: さんぷん / 4 mins: よんふん
+- 5 mins: ごふん / 6 mins: ろっぷん / 7 mins: ななふん / 8 mins: はっぷん
+- 9 mins: きゅうふん / 10 mins: じゅっぷん (or じっぷん)
+- Half past (30 mins): **〜時半 (〜じはん)** (e.g. さんじはん = 3:30)
 
-**Days of the week:**
-にちようび(日) / げつようび(月) / かようび(火) / すいようび(水)
-もくようび(木) / きんようび(金) / どようび(土)
+**Days of the Week (曜日 · Youbi):**
 
-**Months:** いちがつ〜じゅうにがつ (Jan–Dec)
-**Dates:** ついたち(1日), ふつか(2日), みっか(3日)…はつか(20日)…
+| Day | Kanji | Hiragana | Element / Meaning |
+| :--- | :--- | :--- | :--- |
+| Monday | 月曜日 | げつようび | Moon (月) |
+| Tuesday | 火曜日 | かようび | Fire (火) |
+| Wednesday | 水曜日 | すいようび | Water (水) |
+| Thursday | 木曜日 | もくようび | Wood / Tree (木) |
+| Friday | 金曜日 | きんようび | Gold / Metal (金) |
+| Saturday | 土曜日 | どようび | Earth / Soil (土) |
+| Sunday | 日曜日 | にちようび | Sun (日) |
 
-**Time particle に:**
-Specific time → に is required: ろくじに おきます
-Relative time → に is NOT used: まいにち / きのう / あした + NO に`,
+**When to Use Particle に with Time:**
+- Specific clock times or dates → **に is required**: ろくじ**に** おきます (I wake up at 6:00)
+- Relative time words → **NO に**: まいにち (every day), きのう (yesterday), きょう (today), あした (tomorrow)`,
   notes: [
     'ふん vs ぷん: 1、6、8、10分 use ぷん; 2、4、5、7、9分 use ふん; 3分 = さんぷん.',
     'Relative time words (きのう、あした、まいにち) NEVER take に.',

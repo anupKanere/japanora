@@ -17,27 +17,31 @@ const lesson007: LessonContent = {
   ],
   pattern: '[Verb て-form] + ください / います',
   patternJa: '[どうし て] + ください / います',
-  grammarExplanation: `**て form conjugation rules:**
+  grammarExplanation: `The て form is the most important connecting form in Japanese, used for requests, ongoing actions, and linking sentences.
 
-Group 2 (る-verbs): drop る, add て
-→ たべる → たべて / みる → みて
+**Group 2 (Ichidan / る-verbs):**
+Simply drop る and add て.
+- たべる → たべて (eat)
+- みる → みて (see / watch)
+- おきる → おきて (wake up)
+- ねる → ねて (sleep)
 
-Group 1 (う-verbs): variable endings
-- く → いて: かく → かいて
-- ぐ → いで: およぐ → およいで  
-- す → して: はなす → はなして
-- つ/る/う → って: まつ → まって / のる → のって / かう → かって
-- む/ぬ/ぶ → んで: のむ → のんで / しぬ → しんで / あそぶ → あそんで
-- Special: いく → いって (not いいて!)
+**Group 1 (Godan / う-verbs) — The Rhyme Rules:**
+- く → いて (e.g. かく → かいて)
+- ぐ → いで (e.g. およぐ → およいで)
+- す → して (e.g. はなす → はなして)
+- う・つ・る → って (e.g. かう → かって, まつ → まって, とる → とって)
+- む・ぶ・ぬ → んで (e.g. のむ → のんで, あそぶ → あそんで, しぬ → しんで)
+- Special Exception: いく → いって (to go)
 
-Irregular: する → して / くる → きて
+**Group 3 (Irregular verbs):**
+- する → して (do)
+- くる → きて (come)
 
-**Key patterns with て form:**
-
-1. Sequential actions: たべて → ねます (eat and then sleep)
-2. Requests: てください (please do)
-3. Ongoing: ています (am doing / do habitually)
-4. Negative request: ないでください (please don't)`,
+**Key Sentence Patterns with て Form:**
+- 1. Requests: 〜てください (Please do...) e.g. てを あらって ください。
+- 2. Ongoing Actions: 〜ています (Am doing...) e.g. べんきょうして います。
+- 3. Sequential Actions: [Verb て]、[Verb] (Do X and then Y) e.g. ごはんを たべて ねます。`,
   notes: [
     'いく (to go) is irregular in て form: いって (not いいて).',
     'ています can mean ongoing (currently happening) OR habitual/occupational state.',

@@ -17,6 +17,7 @@ import { getNextLesson, getUnitByLessonId } from '@/data/curriculum/n5/units'
 import { LESSON_REGISTRY } from '@/data/curriculum/n5/registry'
 import { ExerciseRenderer } from '@/features/exercises/ExerciseRenderer'
 import { HomeworkReview } from '@/features/lessons/HomeworkReview'
+import { RichGrammarExplanation } from '@/components/common/RichGrammarExplanation'
 import { useApp } from '@/app/AppContext'
 import { progressService } from '@/services/progressService'
 import type { LessonContent } from '@/types'
@@ -297,25 +298,36 @@ export default function LessonPage() {
       )}
 
       {activeTab === 'explanation' && (
-        <div className="space-y-4 animate-fade-in">
-          <div className="bg-surface rounded-xl border border-border p-6 shadow-card">
-            <h3 className="text-base font-bold text-text-primary mb-4 flex items-center gap-2">
-              <BookOpen size={16} className="text-accent" />
-              Grammar Explanation
-            </h3>
-            <div className="text-sm text-text-primary leading-relaxed whitespace-pre-line">
-              {lesson.grammarExplanation}
+        <div className="space-y-5 animate-fade-in">
+          <div className="bg-surface rounded-2xl border border-border p-5 sm:p-6 shadow-card">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-border">
+              <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+                <BookOpen size={18} className="text-accent" />
+                <span>Grammar & Core Rules</span>
+              </h3>
+              <span className="text-[10px] uppercase font-bold text-text-tertiary tracking-wider px-2 py-0.5 rounded-full bg-surface-2">
+                Structured Guide
+              </span>
             </div>
+            
+            <RichGrammarExplanation explanation={lesson.grammarExplanation} />
           </div>
 
           {lesson.notes && lesson.notes.length > 0 && (
-            <div className="bg-info-soft border border-info/20 rounded-xl p-5">
-              <h4 className="text-xs font-bold text-info uppercase tracking-wider mb-3">Key Notes</h4>
-              <ul className="space-y-2">
+            <div className="bg-surface rounded-2xl border border-blue-500/25 p-5 shadow-card bg-gradient-to-r from-blue-500/5 to-transparent">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-6 h-6 rounded-lg bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                  <BookOpen size={13} />
+                </div>
+                <h4 className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                  Important Grammar Insights & Nuances
+                </h4>
+              </div>
+              <ul className="space-y-2.5">
                 {lesson.notes.map((note, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-text-primary">
-                    <span className="text-info font-bold flex-shrink-0">•</span>
-                    <span className="font-japanese leading-relaxed">{note}</span>
+                  <li key={i} className="flex items-start gap-2.5 text-xs text-text-secondary">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
+                    <span className="leading-relaxed">{note}</span>
                   </li>
                 ))}
               </ul>

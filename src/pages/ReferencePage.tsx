@@ -13,6 +13,10 @@ import {
   Flag,
   CheckCircle2,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
+  BookOpen,
+  Info,
 } from 'lucide-react'
 import {
   n5Greetings,
@@ -2090,6 +2094,189 @@ function KanjiTab() {
 
 // ─── 11. ADJECTIVES TAB ──────────────────────────────────────────────────────
 
+function AdjectiveConjugationGuide() {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <div className="bg-surface rounded-2xl border border-border shadow-card overflow-hidden transition-all mb-4">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-4 text-left hover:bg-surface-2/60 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+            <BookOpen size={18} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm text-text-primary">Adjective Formation & Conjugation Guide</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 font-bold">
+                Reference Cheat-Sheet
+              </span>
+            </div>
+            <p className="text-xs text-text-tertiary mt-0.5">
+              Rules for 4 forms (Affirmative, Negative, Past, Past Negative) for い-adjectives and な-adjectives
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs font-semibold text-accent">
+          <span>{isOpen ? 'Hide Rules' : 'View Rules & Cheat-Sheet'}</span>
+          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="p-4 sm:p-5 border-t border-border space-y-6 text-xs text-text-secondary bg-surface-2/20">
+          {/* Group Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                <h4 className="font-bold text-sm text-text-primary">い-Adjectives (True Adjectives)</h4>
+              </div>
+              <p className="leading-relaxed text-xs">
+                End in <strong className="text-text-primary font-japanese">〜い</strong> (e.g., おいしい, たかい, さむい).
+                Conjugate by altering the final <strong className="text-text-primary font-japanese">い</strong> ending directly.
+              </p>
+              <p className="mt-2 text-[11px] text-text-tertiary">
+                Direct noun modification: <code className="text-accent">おいしい りんご</code> (delicious apple).
+              </p>
+            </div>
+
+            <div className="p-4 rounded-xl border border-rose-500/20 bg-rose-500/5">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                <h4 className="font-bold text-sm text-text-primary">な-Adjectives (Adjectival Nouns)</h4>
+              </div>
+              <p className="leading-relaxed text-xs">
+                Act like nouns. Require <strong className="text-text-primary font-japanese">な</strong> when directly preceding a noun (e.g., しずかな へや).
+                Conjugate using the copula (<code className="text-accent">じゃない, だった, じゃなかった</code>).
+              </p>
+              <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                ⚠️ False い-Adjective Traps: <code className="text-text-primary font-japanese">きれい</code> (pretty/clean) and <code className="text-text-primary font-japanese">ゆうめい</code> (famous) are <strong>な-adjectives</strong>!
+              </p>
+            </div>
+          </div>
+
+          {/* い-Adjectives Matrix */}
+          <div>
+            <h4 className="font-bold text-sm text-text-primary mb-2 flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 text-[10px]">い-Adj</span>
+              Conjugation Formula (Example: おいしい · oishii · delicious)
+            </h4>
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <table className="w-full text-left text-xs min-w-[550px]">
+                <thead className="bg-surface-2 border-b border-border">
+                  <tr>
+                    <th className="p-2.5 font-bold text-text-primary">Form</th>
+                    <th className="p-2.5 font-bold text-text-primary">Rule / Suffix</th>
+                    <th className="p-2.5 font-bold text-text-primary">Plain Form</th>
+                    <th className="p-2.5 font-bold text-text-primary">Polite Form (+です)</th>
+                    <th className="p-2.5 font-bold text-text-primary">English</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border font-japanese">
+                  <tr>
+                    <td className="p-2.5 font-sans font-semibold text-text-primary">Present Affirmative</td>
+                    <td className="p-2.5 font-sans"><code className="text-accent">〜い</code> (dictionary)</td>
+                    <td className="p-2.5 text-text-primary font-bold">おいしい</td>
+                    <td className="p-2.5 text-text-primary">おいしいです</td>
+                    <td className="p-2.5 font-sans text-text-tertiary">is delicious</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-sans font-semibold text-text-primary">Present Negative</td>
+                    <td className="p-2.5 font-sans">Drop い + <code className="text-accent">〜くない</code></td>
+                    <td className="p-2.5 text-text-primary font-bold">おいしくない</td>
+                    <td className="p-2.5 text-text-primary">おいしくないです <span className="font-sans text-[10px] text-text-tertiary">(/くありません)</span></td>
+                    <td className="p-2.5 font-sans text-text-tertiary">is not delicious</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-sans font-semibold text-text-primary">Past Affirmative</td>
+                    <td className="p-2.5 font-sans">Drop い + <code className="text-accent">〜かった</code></td>
+                    <td className="p-2.5 text-text-primary font-bold">おいしかった</td>
+                    <td className="p-2.5 text-text-primary">おいしかったです</td>
+                    <td className="p-2.5 font-sans text-text-tertiary">was delicious</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-sans font-semibold text-text-primary">Past Negative</td>
+                    <td className="p-2.5 font-sans">Drop い + <code className="text-accent">〜くなかった</code></td>
+                    <td className="p-2.5 text-text-primary font-bold">おいしくなかった</td>
+                    <td className="p-2.5 text-text-primary">おいしくなかったです <span className="font-sans text-[10px] text-text-tertiary">(/くありませんでした)</span></td>
+                    <td className="p-2.5 font-sans text-text-tertiary">was not delicious</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Special irregular box: いい */}
+            <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-text-secondary flex items-start gap-2.5">
+              <Info size={16} className="text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <div>
+                <strong className="text-text-primary">Special Irregular: いい (Good)</strong>
+                <p className="mt-0.5 leading-relaxed">
+                  Conjugates using its classical base <strong className="text-text-primary font-japanese">よい (yoi)</strong> for all inflections:
+                  <span className="font-japanese text-text-primary ml-1">いい (is good) → <strong>よくない</strong> (not good) → <strong>よかった</strong> (was good) → <strong>よくなかった</strong> (was not good)</span>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* な-Adjectives Matrix */}
+          <div>
+            <h4 className="font-bold text-sm text-text-primary mb-2 flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300 text-[10px]">な-Adj</span>
+              Conjugation Formula (Example: しずか · shizuka · quiet)
+            </h4>
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <table className="w-full text-left text-xs min-w-[550px]">
+                <thead className="bg-surface-2 border-b border-border">
+                  <tr>
+                    <th className="p-2.5 font-bold text-text-primary">Form</th>
+                    <th className="p-2.5 font-bold text-text-primary">Rule / Copula</th>
+                    <th className="p-2.5 font-bold text-text-primary">Plain Form</th>
+                    <th className="p-2.5 font-bold text-text-primary">Polite Form</th>
+                    <th className="p-2.5 font-bold text-text-primary">English</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border font-japanese">
+                  <tr>
+                    <td className="p-2.5 font-sans font-semibold text-text-primary">Present Affirmative</td>
+                    <td className="p-2.5 font-sans"><code className="text-accent">+ だ / です</code></td>
+                    <td className="p-2.5 text-text-primary font-bold">しずかだ</td>
+                    <td className="p-2.5 text-text-primary">しずかです</td>
+                    <td className="p-2.5 font-sans text-text-tertiary">is quiet</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-sans font-semibold text-text-primary">Present Negative</td>
+                    <td className="p-2.5 font-sans"><code className="text-accent">+ じゃない / じゃありません</code></td>
+                    <td className="p-2.5 text-text-primary font-bold">しずかじゃない</td>
+                    <td className="p-2.5 text-text-primary">しずかじゃありません <span className="font-sans text-[10px] text-text-tertiary">(/ではない)</span></td>
+                    <td className="p-2.5 font-sans text-text-tertiary">is not quiet</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-sans font-semibold text-text-primary">Past Affirmative</td>
+                    <td className="p-2.5 font-sans"><code className="text-accent">+ だった / でした</code></td>
+                    <td className="p-2.5 text-text-primary font-bold">しずかだった</td>
+                    <td className="p-2.5 text-text-primary">しずかでした</td>
+                    <td className="p-2.5 font-sans text-text-tertiary">was quiet</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2.5 font-sans font-semibold text-text-primary">Past Negative</td>
+                    <td className="p-2.5 font-sans"><code className="text-accent">+ じゃなかった / じゃありませんでした</code></td>
+                    <td className="p-2.5 text-text-primary font-bold">しずかじゃなかった</td>
+                    <td className="p-2.5 text-text-primary">しずかじゃありませんでした</td>
+                    <td className="p-2.5 font-sans text-text-tertiary">was not quiet</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function AdjectivesTab() {
   const [search, setSearch] = useState('')
   const [type, setType] = useState<'all' | 'i' | 'na'>('all')
@@ -2131,6 +2318,9 @@ function AdjectivesTab() {
 
   return (
     <div className="space-y-4">
+      {/* Adjective Conjugation Guide */}
+      <AdjectiveConjugationGuide />
+
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1"><SearchBar value={search} onChange={setSearch} placeholder="Search adjectives…" /></div>
         <div className="flex gap-2">
@@ -2322,6 +2512,335 @@ const GROUP_LABEL: Record<VerbGroup, string> = {
   irregular: 'Irregular',
 }
 
+function VerbConjugationGuide() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'masu' | 'te' | 'ta' | 'nai' | 'nakatta'>('masu')
+
+  return (
+    <div className="bg-surface rounded-2xl border border-border shadow-card overflow-hidden transition-all mb-4">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-4 text-left hover:bg-surface-2/60 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-accent/10 text-accent flex items-center justify-center">
+            <BookOpen size={18} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm text-text-primary">Verb Formation & Conjugation Chart Rules</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-bold">
+                Complete N5 Rulebook
+              </span>
+            </div>
+            <p className="text-xs text-text-tertiary mt-0.5">
+              Step-by-step formation rules for ます, て, た, ない, and なかった forms across Groups 1, 2, and 3
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs font-semibold text-accent">
+          <span>{isOpen ? 'Hide Rules' : 'View Rules & Cheat-Sheet'}</span>
+          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="p-4 sm:p-5 border-t border-border space-y-5 text-xs text-text-secondary bg-surface-2/20">
+          {/* Verb Groups Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="p-3.5 rounded-xl border border-border bg-surface">
+              <div className="flex items-center gap-1.5 font-bold text-text-primary text-xs mb-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                <span>Group 1: Godan (五段動詞)</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                Ends in 9 possible syllables: <strong className="text-text-primary font-japanese">う, く, ぐ, す, つ, ぬ, ぶ, む, る</strong> (where る is preceded by a/u/o vowels).
+              </p>
+              <p className="text-[10px] text-text-tertiary mt-1">Examples: かく, のむ, はなす, いく, とる</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-surface">
+              <div className="flex items-center gap-1.5 font-bold text-text-primary text-xs mb-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <span>Group 2: Ichidan (一段動詞)</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                Always ends in <strong className="text-text-primary font-japanese">る</strong> preceded by an <strong className="text-text-primary">"i"</strong> or <strong className="text-text-primary">"e"</strong> sound. Easy: drop る and add suffix.
+              </p>
+              <p className="text-[10px] text-text-tertiary mt-1">Examples: たべる, みる, ねる, おきる</p>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-surface">
+              <div className="flex items-center gap-1.5 font-bold text-text-primary text-xs mb-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                <span>Group 3: Irregular (変格動詞)</span>
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                Only two primary verbs in all of Japanese: <strong className="text-text-primary font-japanese">する</strong> (to do) and <strong className="text-text-primary font-japanese">くる</strong> (to come).
+              </p>
+              <p className="text-[10px] text-text-tertiary mt-1">Also includes noun+する (べんきょうする, りょこうする)</p>
+            </div>
+          </div>
+
+          {/* Form Tabs Selector */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {[
+              { id: 'masu', label: 'ます Form (Polite Present)' },
+              { id: 'te', label: 'て Form (Connecting / Request)' },
+              { id: 'ta', label: 'た Form (Plain Past / Experience)' },
+              { id: 'nai', label: 'ない Form (Plain Negative)' },
+              { id: 'nakatta', label: 'なかった Form (Plain Past Negative)' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  activeTab === tab.id
+                    ? 'bg-accent text-white shadow-sm'
+                    : 'bg-surface border border-border text-text-secondary hover:bg-surface-2'
+                }`}
+              >
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Tab 1: ます Form */}
+          {activeTab === 'masu' && (
+            <div className="space-y-3 bg-surface p-4 rounded-xl border border-border">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm text-text-primary">ます Form (Polite Present / Future)</h4>
+                <span className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold px-2 py-0.5 rounded-full">丁寧語 · Teineigo</span>
+              </div>
+              <p className="text-xs text-text-secondary">
+                Used in everyday polite conversation. Serves as the foundation for <code className="text-accent">〜ました</code> (past polite), <code className="text-accent">〜ません</code> (negative polite), and <code className="text-accent">〜ましょう</code> (let's).
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="p-3 rounded-lg border border-border bg-surface-2/40">
+                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">Group 1 (Godan)</span>
+                  <p className="text-xs font-semibold text-text-primary mt-1">Change ending ~u → ~i + ます</p>
+                  <ul className="mt-2 space-y-1 text-[11px] font-japanese">
+                    <li>かく (ku) → <strong className="text-text-primary">かきます</strong></li>
+                    <li>のむ (mu) → <strong className="text-text-primary">のみます</strong></li>
+                    <li>はなす (su) → <strong className="text-text-primary">はなします</strong></li>
+                    <li>かう (u) → <strong className="text-text-primary">かいます</strong></li>
+                  </ul>
+                </div>
+
+                <div className="p-3 rounded-lg border border-border bg-surface-2/40">
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Group 2 (Ichidan)</span>
+                  <p className="text-xs font-semibold text-text-primary mt-1">Drop る + ます</p>
+                  <ul className="mt-2 space-y-1 text-[11px] font-japanese">
+                    <li>たべる → <strong className="text-text-primary">たべます</strong></li>
+                    <li>みる → <strong className="text-text-primary">みます</strong></li>
+                    <li>ねる → <strong className="text-text-primary">ねます</strong></li>
+                    <li>おきる → <strong className="text-text-primary">おきます</strong></li>
+                  </ul>
+                </div>
+
+                <div className="p-3 rounded-lg border border-border bg-surface-2/40">
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">Group 3 (Irregular)</span>
+                  <p className="text-xs font-semibold text-text-primary mt-1">Memorize specific forms</p>
+                  <ul className="mt-2 space-y-1 text-[11px] font-japanese">
+                    <li>する → <strong className="text-text-primary">します</strong></li>
+                    <li>くる → <strong className="text-text-primary">きます</strong></li>
+                    <li>べんきょうする → <strong className="text-text-primary">べんきょうします</strong></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: て Form */}
+          {activeTab === 'te' && (
+            <div className="space-y-3 bg-surface p-4 rounded-xl border border-border">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm text-text-primary">て Form (Connecting, Requests, Progressive)</h4>
+                <span className="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold px-2 py-0.5 rounded-full">〜てください / 〜ています</span>
+              </div>
+              <p className="text-xs text-text-secondary">
+                Used to connect actions in sequence, make polite requests with <code className="text-accent">〜てください</code>, and form ongoing actions with <code className="text-accent">〜ています</code>.
+              </p>
+
+              <div className="space-y-2 pt-1">
+                <div className="p-3 rounded-lg border border-blue-500/20 bg-blue-500/5">
+                  <span className="font-bold text-xs text-text-primary">Group 1: The Rhyme & Ending Rules</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 font-japanese text-[11px]">
+                    <div className="p-2 rounded bg-surface border border-border">
+                      <p className="font-sans font-bold text-text-primary">う, つ, る → って</p>
+                      <p className="text-text-tertiary">かう→<strong>かって</strong> · まつ→<strong>まって</strong> · とる→<strong>とって</strong></p>
+                    </div>
+                    <div className="p-2 rounded bg-surface border border-border">
+                      <p className="font-sans font-bold text-text-primary">む, ぶ, ぬ → んで</p>
+                      <p className="text-text-tertiary">のむ→<strong>のんで</strong> · あそぶ→<strong>あそんで</strong> · しぬ→<strong>しんで</strong></p>
+                    </div>
+                    <div className="p-2 rounded bg-surface border border-border">
+                      <p className="font-sans font-bold text-text-primary">く → いて / ぐ → いで</p>
+                      <p className="text-text-tertiary">かく→<strong>かいて</strong> · およぐ→<strong>およいで</strong></p>
+                      <p className="font-sans text-[10px] text-amber-600 dark:text-amber-400 font-bold mt-0.5">⚠️ Exception: いく (to go) → いって</p>
+                    </div>
+                    <div className="p-2 rounded bg-surface border border-border">
+                      <p className="font-sans font-bold text-text-primary">す → して</p>
+                      <p className="text-text-tertiary">はなす→<strong>はなして</strong> · だす→<strong>だして</strong></p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="p-3 rounded-lg border border-border bg-surface-2/40">
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Group 2 (Ichidan)</span>
+                    <p className="text-xs font-semibold text-text-primary mt-0.5">Drop る + て</p>
+                    <p className="font-japanese text-[11px] text-text-tertiary mt-1">たべる → <strong className="text-text-primary">たべて</strong> · みる → <strong className="text-text-primary">みて</strong></p>
+                  </div>
+                  <div className="p-3 rounded-lg border border-border bg-surface-2/40">
+                    <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">Group 3 (Irregular)</span>
+                    <p className="text-xs font-semibold text-text-primary mt-0.5">Irregular forms</p>
+                    <p className="font-japanese text-[11px] text-text-tertiary mt-1">する → <strong className="text-text-primary">して</strong> · くる → <strong className="text-text-primary">きて</strong></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 3: た Form */}
+          {activeTab === 'ta' && (
+            <div className="space-y-3 bg-surface p-4 rounded-xl border border-border">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm text-text-primary">た Form (Plain Past / Experience)</h4>
+                <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold px-2 py-0.5 rounded-full">〜たことがあります</span>
+              </div>
+              <p className="text-xs text-text-secondary">
+                The casual past tense. Key grammar: <code className="text-accent">〜たことがあります</code> (have experienced doing...) and <code className="text-accent">〜たり〜たりします</code> (doing things like A and B).
+              </p>
+
+              <div className="p-3 rounded-xl bg-purple-500/5 border border-purple-500/20 text-xs">
+                <strong className="text-text-primary">💡 Golden Memory Hack:</strong>
+                <p className="mt-0.5 leading-relaxed">
+                  The <strong className="text-text-primary font-japanese">た Form</strong> follows the <strong>exact same phonetic sound shifts</strong> as the <strong className="text-text-primary font-japanese">て Form</strong>! Just replace <code className="text-accent">て</code> with <code className="text-accent">た</code> and <code className="text-accent">で</code> with <code className="text-accent">だ</code>:
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 font-japanese text-[11px]">
+                  <div className="p-2 rounded bg-surface border border-border text-center">
+                    <p className="text-text-tertiary">う, つ, る</p>
+                    <p className="font-bold text-text-primary">→ った</p>
+                    <span className="font-sans text-[10px] text-text-tertiary">買った, 待った</span>
+                  </div>
+                  <div className="p-2 rounded bg-surface border border-border text-center">
+                    <p className="text-text-tertiary">む, ぶ, ぬ</p>
+                    <p className="font-bold text-text-primary">→ んだ</p>
+                    <span className="font-sans text-[10px] text-text-tertiary">飲んだ, 遊んだ</span>
+                  </div>
+                  <div className="p-2 rounded bg-surface border border-border text-center">
+                    <p className="text-text-tertiary">く / ぐ</p>
+                    <p className="font-bold text-text-primary">→ いた / いだ</p>
+                    <span className="font-sans text-[10px] text-text-tertiary">書いた, 泳いだ</span>
+                  </div>
+                  <div className="p-2 rounded bg-surface border border-border text-center">
+                    <p className="text-text-tertiary">す</p>
+                    <p className="font-bold text-text-primary">→ した</p>
+                    <span className="font-sans text-[10px] text-text-tertiary">話した, 出した</span>
+                  </div>
+                </div>
+                <p className="mt-2 text-[11px] text-text-tertiary">
+                  Group 2: <strong className="font-japanese text-text-primary">たべた, みた</strong> (drop る + た) · Group 3: <strong className="font-japanese text-text-primary">した, きた</strong> · Exception: <strong className="font-japanese text-text-primary">いった</strong> (from 行く).
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 4: ない Form */}
+          {activeTab === 'nai' && (
+            <div className="space-y-3 bg-surface p-4 rounded-xl border border-border">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm text-text-primary">ない Form (Plain Negative)</h4>
+                <span className="text-[10px] bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold px-2 py-0.5 rounded-full">〜ないでください / 〜なければなりません</span>
+              </div>
+              <p className="text-xs text-text-secondary">
+                The casual present/future negative. Key patterns: <code className="text-accent">〜ないでください</code> (please don't) and <code className="text-accent">〜なければなりません</code> (must do).
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="p-3 rounded-lg border border-border bg-surface-2/40">
+                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">Group 1 (Godan)</span>
+                  <p className="text-xs font-semibold text-text-primary mt-1">Shift final ~u sound to ~a row + ない</p>
+                  <ul className="mt-2 space-y-1 text-[11px] font-japanese">
+                    <li>かく (ku) → <strong className="text-text-primary">かかない</strong></li>
+                    <li>のむ (mu) → <strong className="text-text-primary">のまない</strong></li>
+                    <li>まつ (tsu) → <strong className="text-text-primary">またない</strong></li>
+                    <li className="text-rose-600 dark:text-rose-400 font-bold">⚠️ う → わ: かう → かわない</li>
+                  </ul>
+                </div>
+
+                <div className="p-3 rounded-lg border border-border bg-surface-2/40">
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Group 2 (Ichidan)</span>
+                  <p className="text-xs font-semibold text-text-primary mt-1">Drop る + ない</p>
+                  <ul className="mt-2 space-y-1 text-[11px] font-japanese">
+                    <li>たべる → <strong className="text-text-primary">たべない</strong></li>
+                    <li>みる → <strong className="text-text-primary">みない</strong></li>
+                    <li>ねる → <strong className="text-text-primary">ねない</strong></li>
+                  </ul>
+                </div>
+
+                <div className="p-3 rounded-lg border border-border bg-surface-2/40">
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">Group 3 & Irregulars</span>
+                  <p className="text-xs font-semibold text-text-primary mt-1">Sound change</p>
+                  <ul className="mt-2 space-y-1 text-[11px] font-japanese">
+                    <li>する → <strong className="text-text-primary">しない</strong></li>
+                    <li>くる → <strong className="text-text-primary">こない</strong> (sound shifts to ko!)</li>
+                    <li className="text-amber-600 dark:text-amber-400 font-bold">ある (to exist) → ない</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab 5: なかった Form */}
+          {activeTab === 'nakatta' && (
+            <div className="space-y-3 bg-surface p-4 rounded-xl border border-border">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-sm text-text-primary">なかった Form (Plain Past Negative)</h4>
+                <span className="text-[10px] bg-red-500/10 text-red-600 dark:text-red-400 font-bold px-2 py-0.5 rounded-full">Casual Past Negative</span>
+              </div>
+              <p className="text-xs text-text-secondary">
+                Expresses "did not do [verb]" casually. The polite equivalent is <code className="text-accent">〜ませんでした</code>.
+              </p>
+
+              <div className="p-3 rounded-xl bg-surface border border-border text-xs space-y-2">
+                <p className="font-semibold text-text-primary">
+                  Formula: Take the <span className="font-japanese text-accent">ない</span> form → Drop <span className="font-japanese text-rose-500">い</span> → Add <span className="font-japanese text-accent">かった</span>
+                </p>
+                <p className="text-text-tertiary text-[11px]">
+                  Because the negative suffix <strong className="font-japanese text-text-primary">〜ない</strong> behaves grammatically as an い-adjective, its past form cleanly becomes <strong className="font-japanese text-text-primary">〜なかった</strong>.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 font-japanese text-[11px]">
+                  <div className="p-2 rounded bg-surface-2 border border-border">
+                    <p className="font-sans font-bold text-text-primary text-[10px]">Group 1 (Godan)</p>
+                    <p>書かない → <strong className="text-text-primary">書かなかった</strong></p>
+                    <p>飲まない → <strong className="text-text-primary">飲まなかった</strong></p>
+                    <p>買わない → <strong className="text-text-primary">買わなかった</strong></p>
+                  </div>
+                  <div className="p-2 rounded bg-surface-2 border border-border">
+                    <p className="font-sans font-bold text-text-primary text-[10px]">Group 2 (Ichidan)</p>
+                    <p>食べない → <strong className="text-text-primary">食べなかった</strong></p>
+                    <p>見ない → <strong className="text-text-primary">見なかった</strong></p>
+                  </div>
+                  <div className="p-2 rounded bg-surface-2 border border-border">
+                    <p className="font-sans font-bold text-text-primary text-[10px]">Group 3 & Irregular</p>
+                    <p>しない → <strong className="text-text-primary">しなかった</strong></p>
+                    <p>こない → <strong className="text-text-primary">こなかった</strong></p>
+                    <p>ない → <strong className="text-text-primary">なかった</strong></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function VerbChartTab() {
   const [search, setSearch] = useState('')
   const [group, setGroup] = useState<VerbGroup | 'all'>('all')
@@ -2364,6 +2883,9 @@ function VerbChartTab() {
 
   return (
     <div className="space-y-4">
+      {/* Verb Conjugation Guide */}
+      <VerbConjugationGuide />
+
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="flex-1"><SearchBar value={search} onChange={setSearch} placeholder="Search verb, meaning, or form…" /></div>
         <div className="flex gap-2 flex-wrap">
