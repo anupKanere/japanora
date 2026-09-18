@@ -6,7 +6,7 @@
  * - 33 Yōon (Combination glides with small ya/yu/yo)
  */
 
-import { settingsService } from '@/services/settingsService'
+import { audioService } from '@/services/audioService'
 
 export interface KanaExample {
   japanese: string
@@ -848,26 +848,5 @@ export const allKana: KanaEntry[] = [...seionKana, ...dakuonKana, ...yoonKana]
  * Zero external audio downloads needed, instant playback in modern browsers.
  */
 export function playKanaAudio(text: string, customRate?: number): void {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
-  try {
-    const settings = settingsService.getSettings()
-    if (settings.soundEnabled === false) return
-
-    window.speechSynthesis.cancel() // Stop any previous speech
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'ja-JP'
-    utterance.rate = customRate ?? settings.speechRate ?? 0.85
-    utterance.pitch = 1.0
-
-    // Pick a high-quality Japanese voice if available
-    const voices = window.speechSynthesis.getVoices()
-    const jaVoice = voices.find((v) => v.lang.startsWith('ja') || v.lang === 'ja-JP')
-    if (jaVoice) {
-      utterance.voice = jaVoice
-    }
-
-    window.speechSynthesis.speak(utterance)
-  } catch {
-    // Graceful fallback if speech synthesis is disabled or blocked
-  }
+  audioService.speak(text, { rate: customRate })
 }

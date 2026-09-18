@@ -293,6 +293,8 @@ export interface AppSettings {
   dailyGoalMinutes: number
   soundEnabled: boolean
   speechRate: number              // e.g. 0.75, 0.85, 1.0
+  voiceGender?: 'female' | 'male'
+  voiceName?: string
   autoPlayAudio: boolean
   revisionReminderEnabled: boolean
   revisionReminderTime: string    // HH:mm

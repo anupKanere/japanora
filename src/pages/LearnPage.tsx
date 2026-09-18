@@ -164,7 +164,7 @@ export default function LearnPage() {
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold">New</span>
             </div>
             <p className="text-xs text-text-secondary mt-0.5">
-              Study the exact formulas for ます, て, た, ない, and なかった verb forms and 4 adjective inflections in Reference.
+              Study the exact formulas for ます, て, た, ない, and なかった verb forms and 4 adjective inflections in Essentials.
             </p>
           </div>
         </div>

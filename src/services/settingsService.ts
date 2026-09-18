@@ -11,6 +11,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   dailyGoalMinutes: 20,
   soundEnabled: true,
   speechRate: 0.85,
+  voiceGender: 'female',
+  voiceName: '',
   autoPlayAudio: false,
   revisionReminderEnabled: true,
   revisionReminderTime: '09:00',
@@ -18,7 +20,15 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 export const settingsService = {
   getSettings(): AppSettings {
-    return storageService.get<AppSettings>(SETTINGS_KEY, DEFAULT_SETTINGS)
+    const saved = storageService.get<Partial<AppSettings>>(SETTINGS_KEY, {})
+    const merged: AppSettings = { ...DEFAULT_SETTINGS, ...saved }
+    if (typeof merged.speechRate !== 'number' || isNaN(merged.speechRate) || merged.speechRate <= 0) {
+      merged.speechRate = DEFAULT_SETTINGS.speechRate
+    }
+    if (!merged.voiceGender || (merged.voiceGender !== 'female' && merged.voiceGender !== 'male')) {
+      merged.voiceGender = 'female'
+    }
+    return merged
   },
 
   updateSettings(partial: Partial<AppSettings>): AppSettings {

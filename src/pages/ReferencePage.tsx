@@ -1,11 +1,9 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   Search,
   ChevronLeft,
   ChevronRight,
-  LayoutGrid,
-  Rows,
   X,
   Flame,
   RotateCcw,
@@ -36,12 +34,18 @@ import {
   n5Kanji110,
 } from '@/data/reference/n5-reference'
 import type {
-  BodyPart,
-  FamilyMember,
   VerbGroup,
   KanjiRef,
 } from '@/data/reference/n5-reference'
 import { playKanaAudio } from '@/data/kana/kana-data'
+import { AnalogClock, InteractiveClockStudio } from '@/components/reference/ClockVisualizer'
+import { InteractiveCalendarStudio } from '@/components/reference/CalendarVisualizer'
+import { InteractiveCounterStudio } from '@/components/reference/CounterVisualizer'
+import { InteractiveFamilyTreeStudio } from '@/components/reference/FamilyTreeVisualizer'
+import { InteractiveBodyMapStudio } from '@/components/reference/BodyMapVisualizer'
+import { InteractiveWHStudio } from '@/components/reference/WHQuestionVisualizer'
+import { settingsService } from '@/services/settingsService'
+
 
 // ─── Tab definitions with counts & groups ──────────────────────────────────────
 
@@ -50,47 +54,42 @@ export interface TabDef {
   emoji: string
   label: string
   count: number
-  group: 'conversation' | 'time' | 'foundation'
   description: string
 }
 
 export const TABS: TabDef[] = [
-  { id: 'greetings', emoji: '🙏', label: 'Greetings', count: n5Greetings.length, group: 'conversation', description: 'Essential daily greetings & polite expressions' },
-  { id: 'body', emoji: '🧍', label: 'Body Parts', count: n5BodyParts.length, group: 'foundation', description: 'Head-to-toe anatomical terms & body idioms' },
-  { id: 'days', emoji: '📅', label: 'Days & Dates', count: n5DaysOfWeek.length + n5DateWords.length, group: 'time', description: 'Days of week, months, and special calendar readings' },
-  { id: 'numbers', emoji: '🔢', label: 'Numbers', count: n5Numbers.length, group: 'time', description: '1 to 10,000 with kanji, hiragana, and pronunciation rules' },
-  { id: 'clock', emoji: '🕐', label: 'Clock & Time', count: n5ClockHours.length + n5ClockMinutes.length + n5TimeWords.length, group: 'time', description: 'Hours, minutes with sound changes, and relative time words' },
-  { id: 'family-own', emoji: '👨‍👩‍👧', label: 'Family (Own)', count: n5FamilyOwn.length, group: 'conversation', description: 'Humble terms when speaking about your own family' },
-  { id: 'family-oth', emoji: '🏠', label: 'Family (Others)', count: n5FamilyOthers.length, group: 'conversation', description: 'Polite honorific terms when referring to others\' family' },
-  { id: 'wh', emoji: '❓', label: 'WH Questions', count: n5WHQuestions.length, group: 'conversation', description: 'Question words (who, what, where, when, why, how)' },
-  { id: 'particles', emoji: '📌', label: 'Particles', count: n5Particles.length, group: 'foundation', description: 'Grammatical particles (は, が, を, に, で, と, も, etc.)' },
-  { id: 'kanji', emoji: '漢', label: 'Kanji 125', count: n5Kanji110.length, group: 'foundation', description: '100% complete official JLPT N5 kanji index' },
-  { id: 'adj', emoji: '✏️', label: 'Adjectives', count: n5Adjectives.length, group: 'foundation', description: 'い-adjectives and な-adjectives with conjugations' },
-  { id: 'verbs', emoji: '動', label: 'Verb Chart', count: n5VerbChart.length, group: 'foundation', description: 'Essential verbs across Group 1, Group 2, and Irregular' },
+  // ── 1. Core Grammar & Conjugation (Heavy language engines) ──────────
+  { id: 'verbs', emoji: '動', label: 'Verb Chart', count: n5VerbChart.length, description: '187 verbs across Group 1, Group 2, and Irregular with 5 essential forms' },
+  { id: 'adj', emoji: '✏️', label: 'Adjectives', count: n5Adjectives.length, description: '125 い-adjectives and な-adjectives with full 4-form inflection guides' },
+  { id: 'particles', emoji: '📌', label: 'Particles', count: n5Particles.length, description: 'Core grammatical particles (は, が, を, に, で, と, も, etc.) and nuances' },
+  { id: 'kanji', emoji: '漢', label: 'Kanji', count: n5Kanji110.length, description: '100 essential JLPT N5 kanji index with readings, strokes, and meanings' },
+
+  // ── 2. Numbers, Time & Calendar (Daily counting & time systems) ──────
+  { id: 'numbers', emoji: '🔢', label: 'Numbers', count: n5Numbers.length, description: '1 to 10,000 with kanji, hiragana, counters, and sound change rules' },
+  { id: 'clock', emoji: '🕐', label: 'Clock & Time', count: n5ClockHours.length + n5ClockMinutes.length + n5TimeWords.length, description: 'Hours, minutes with sound shifts, and relative time expressions' },
+  { id: 'days', emoji: '📅', label: 'Days & Dates', count: n5DaysOfWeek.length + n5DateWords.length, description: 'Days of week, months, and special calendar readings (1st to 31st)' },
+  { id: 'wh', emoji: '❓', label: 'WH Questions', count: n5WHQuestions.length, description: 'Question words (who, what, where, when, why, how) and usage examples' },
+
+  // ── 3. Daily Communication & Vocabulary (Real-world interaction) ────
+  { id: 'greetings', emoji: '🙏', label: 'Greetings', count: n5Greetings.length, description: 'Essential daily greetings, polite expressions, and classroom phrases' },
+  { id: 'family', emoji: '👨‍👩‍👧', label: 'Family', count: n5FamilyOwn.length + n5FamilyOthers.length, description: 'Visual Uchi-Soto family tree and comparison chart (Humble vs Respectful)' },
+  { id: 'body', emoji: '🧍', label: 'Body Parts', count: n5BodyParts.length, description: 'Head-to-toe anatomical terms, health expressions, and body idioms' },
 ]
 
 export type TabId =
-  | 'greetings'
-  | 'body'
-  | 'days'
-  | 'numbers'
-  | 'clock'
-  | 'family-own'
-  | 'family-oth'
-  | 'wh'
+  | 'verbs'
+  | 'adj'
   | 'particles'
   | 'kanji'
-  | 'adj'
-  | 'verbs'
-
-export const TAB_GROUPS = [
-  { id: 'all', label: 'All Categories', count: 12 },
-  { id: 'conversation', label: '🗣️ Conversational', count: 4 },
-  { id: 'time', label: '🔢 Numbers & Time', count: 3 },
-  { id: 'foundation', label: '📚 Foundations', count: 5 },
-] as const
-
-export type TabGroupId = typeof TAB_GROUPS[number]['id']
+  | 'numbers'
+  | 'clock'
+  | 'days'
+  | 'wh'
+  | 'greetings'
+  | 'family'
+  | 'family-own'
+  | 'family-oth'
+  | 'body'
 
 // ─── Shared search input ──────────────────────────────────────────────────────
 
@@ -322,359 +321,14 @@ function GreetingsTab() {
 
 // ─── 2. BODY PARTS TAB ───────────────────────────────────────────────────────
 
-const REGION_COLOR: Record<BodyPart['region'], string> = {
-  head: 'bg-red-100 text-red-700',
-  face: 'bg-pink-100 text-pink-700',
-  'upper-body': 'bg-blue-100 text-blue-700',
-  hand: 'bg-purple-100 text-purple-700',
-  'lower-body': 'bg-green-100 text-green-700',
-  internal: 'bg-amber-100 text-amber-700',
-}
-
 function BodyPartsTab() {
-  const [search, setSearch] = useState('')
-  const [region, setRegion] = useState<string>('all')
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-
-  const regions = ['all', 'head', 'face', 'upper-body', 'hand', 'lower-body', 'internal']
-  const filtered = n5BodyParts.filter(b => {
-    const m = !search || b.hiragana.includes(search) || b.meaning.toLowerCase().includes(search.toLowerCase()) || b.romaji.toLowerCase().includes(search.toLowerCase())
-    const r = region === 'all' || b.region === region
-    return m && r
-  })
-
-  const currentItem = selectedIndex !== null && filtered[selectedIndex] ? filtered[selectedIndex] : null
-
-  function handlePrev() {
-    if (selectedIndex !== null && selectedIndex > 0) {
-      setSelectedIndex(selectedIndex - 1)
-    }
-  }
-
-  function handleNext() {
-    if (selectedIndex !== null && selectedIndex < filtered.length - 1) {
-      setSelectedIndex(selectedIndex + 1)
-    }
-  }
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (selectedIndex === null) return
-      if (e.key === 'ArrowLeft') handlePrev()
-      if (e.key === 'ArrowRight') handleNext()
-      if (e.key === 'Escape') setSelectedIndex(null)
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedIndex, filtered.length])
-
-  return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex-1"><SearchBar value={search} onChange={setSearch} placeholder="Search body parts…" /></div>
-      </div>
-      <div className="flex gap-1.5 flex-wrap">
-        {regions.map(r => (
-          <button key={r} onClick={() => setRegion(r)} className={`px-3 py-1 rounded-full text-[11px] font-semibold capitalize transition-all ${region === r ? 'bg-accent text-white' : 'bg-surface border border-border text-text-secondary hover:bg-surface-2'}`}>{r.replace('-', ' ')}</button>
-        ))}
-      </div>
-      <p className="text-xs text-text-tertiary">{filtered.length} body parts • Click any card for details</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        {filtered.map((b, i) => (
-          <button
-            key={i}
-            onClick={() => setSelectedIndex(i)}
-            className="bg-surface border border-border rounded-xl p-3 shadow-card text-center hover:shadow-card-hover hover:border-border-strong hover:scale-[1.02] transition-all group"
-          >
-            <Badge label={b.region.replace('-', ' ')} color={REGION_COLOR[b.region]} />
-            <p className="text-2xl font-japanese font-bold text-text-primary group-hover:text-accent transition-colors mt-2 mb-1">{b.hiragana}</p>
-            {b.kanji && <p className="text-xs font-japanese text-text-tertiary">{b.kanji}</p>}
-            <p className="text-[11px] text-text-tertiary italic">{b.romaji}</p>
-            <p className="text-xs text-text-primary font-medium mt-1">{b.meaning}</p>
-          </button>
-        ))}
-      </div>
-
-      {/* Body Part Detail Modal */}
-      {currentItem && selectedIndex !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedIndex(null)} />
-
-          {/* Floating Left Arrow */}
-          <button
-            onClick={handlePrev}
-            disabled={selectedIndex === 0}
-            className={`hidden md:flex absolute left-8 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full items-center justify-center border border-border bg-surface shadow-panel transition-all ${
-              selectedIndex === 0
-                ? 'opacity-20 cursor-not-allowed text-text-tertiary'
-                : 'text-text-primary hover:bg-surface-2 hover:scale-110 active:scale-95'
-            }`}
-            aria-label="Previous body part"
-          >
-            <ChevronLeft size={24} />
-          </button>
-
-          {/* Floating Right Arrow */}
-          <button
-            onClick={handleNext}
-            disabled={selectedIndex === filtered.length - 1}
-            className={`hidden md:flex absolute right-8 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full items-center justify-center border border-border bg-surface shadow-panel transition-all ${
-              selectedIndex === filtered.length - 1
-                ? 'opacity-20 cursor-not-allowed text-text-tertiary'
-                : 'text-text-primary hover:bg-surface-2 hover:scale-110 active:scale-95'
-            }`}
-            aria-label="Next body part"
-          >
-            <ChevronRight size={24} />
-          </button>
-
-          <div className="relative w-full max-w-sm bg-surface rounded-2xl border border-border shadow-panel p-6 animate-slide-up max-h-[85vh] flex flex-col z-10">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-border">
-              <span className="text-xs font-semibold text-text-tertiary">
-                Body Part {selectedIndex + 1} of {filtered.length}
-              </span>
-              <button
-                onClick={() => setSelectedIndex(null)}
-                className="p-1.5 rounded-lg hover:bg-surface-2 text-text-secondary hover:text-text-primary transition-colors"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="py-6 text-center space-y-2 flex-1">
-              <Badge label={currentItem.region.replace('-', ' ')} color={REGION_COLOR[currentItem.region]} />
-              <p className="text-5xl font-japanese font-bold text-text-primary pt-2">{currentItem.hiragana}</p>
-              {currentItem.kanji && (
-                <p className="text-xl font-japanese text-text-tertiary">（{currentItem.kanji}）</p>
-              )}
-              <p className="text-sm text-text-tertiary italic">{currentItem.romaji}</p>
-              <p className="text-lg text-text-primary font-semibold pt-1">{currentItem.meaning}</p>
-            </div>
-
-            {/* Footer Navigation */}
-            <div className="flex items-center justify-between pt-3 border-t border-border mt-2">
-              <button
-                onClick={handlePrev}
-                disabled={selectedIndex === 0}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border border-border transition-all ${
-                  selectedIndex === 0
-                    ? 'opacity-30 cursor-not-allowed bg-surface-2 text-text-tertiary'
-                    : 'bg-surface text-text-primary hover:bg-surface-2 active:scale-95'
-                }`}
-              >
-                <ChevronLeft size={16} />
-                <span>Previous</span>
-              </button>
-
-              <span className="text-xs text-text-tertiary font-mono">
-                {selectedIndex + 1} / {filtered.length}
-              </span>
-
-              <button
-                onClick={handleNext}
-                disabled={selectedIndex === filtered.length - 1}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border border-border transition-all ${
-                  selectedIndex === filtered.length - 1
-                    ? 'opacity-30 cursor-not-allowed bg-surface-2 text-text-tertiary'
-                    : 'bg-accent text-white hover:opacity-90 active:scale-95'
-                }`}
-              >
-                <span>Next</span>
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
+  return <InteractiveBodyMapStudio />
 }
 
 // ─── 3. DAYS OF WEEK TAB ─────────────────────────────────────────────────────
 
-const DAY_COLORS = [
-  'border-l-red-400 bg-red-50',      // Sun
-  'border-l-blue-400 bg-blue-50',    // Mon
-  'border-l-orange-400 bg-orange-50',// Tue
-  'border-l-cyan-400 bg-cyan-50',    // Wed
-  'border-l-green-400 bg-green-50',  // Thu
-  'border-l-yellow-400 bg-yellow-50',// Fri
-  'border-l-purple-400 bg-purple-50',// Sat
-]
-
 function DaysTab() {
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null)
-
-  const currentDay = selectedDayIndex !== null ? n5DaysOfWeek[selectedDayIndex] : null
-
-  function handlePrev() {
-    if (selectedDayIndex !== null && selectedDayIndex > 0) {
-      setSelectedDayIndex(selectedDayIndex - 1)
-    }
-  }
-
-  function handleNext() {
-    if (selectedDayIndex !== null && selectedDayIndex < n5DaysOfWeek.length - 1) {
-      setSelectedDayIndex(selectedDayIndex + 1)
-    }
-  }
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (selectedDayIndex === null) return
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        handlePrev()
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        handleNext()
-      } else if (e.key === 'Escape') {
-        setSelectedDayIndex(null)
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedDayIndex])
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-sm font-bold text-text-primary mb-3">Days of the Week — 曜日</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {n5DaysOfWeek.map((d, i) => (
-            <div
-              key={d.romaji}
-              onClick={() => setSelectedDayIndex(i)}
-              className={`border-l-4 rounded-r-xl p-4 shadow-card cursor-pointer hover:scale-[1.02] active:scale-[0.99] transition-all ${DAY_COLORS[i % DAY_COLORS.length]}`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider">{d.element}</p>
-                <span className="text-[10px] text-text-tertiary">Day {i + 1}</span>
-              </div>
-              <p className="text-2xl font-japanese font-bold text-text-primary">{d.kanji}</p>
-              <p className="text-sm font-japanese text-text-secondary">{d.hiragana}</p>
-              <p className="text-[11px] text-text-tertiary italic">{d.romaji}</p>
-              <p className="text-sm text-text-primary font-semibold mt-1">{d.meaning}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div>
-        <h3 className="text-sm font-bold text-text-primary mb-3">Related Time Words</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {n5DateWords.map((w, i) => (
-            <div key={i} className="bg-surface border border-border rounded-xl p-3 shadow-card">
-              <p className="text-lg font-japanese font-bold text-text-primary">{w.hiragana}</p>
-              {w.kanji && <p className="text-xs font-japanese text-text-tertiary">{w.kanji}</p>}
-              <p className="text-[11px] text-text-tertiary italic">{w.romaji}</p>
-              <p className="text-xs text-text-primary font-medium mt-1">{w.meaning}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Days Modal Dialog */}
-      {currentDay && selectedDayIndex !== null && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setSelectedDayIndex(null)}
-        >
-          {/* Desktop Left Arrow */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handlePrev()
-            }}
-            disabled={selectedDayIndex === 0}
-            aria-label="Previous day"
-            className={`hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-surface/90 border border-border shadow-xl text-text-primary mr-4 hover:bg-surface-2 transition-all ${
-              selectedDayIndex === 0 ? 'opacity-20 cursor-not-allowed' : 'hover:scale-110 active:scale-95'
-            }`}
-          >
-            <ChevronLeft size={28} />
-          </button>
-
-          <div
-            className="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-sm p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-accent-soft text-accent uppercase tracking-wider">
-                {currentDay.element}
-              </span>
-              <button
-                onClick={() => setSelectedDayIndex(null)}
-                className="text-text-tertiary hover:text-text-primary p-1 rounded-lg hover:bg-surface-2 transition-colors"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Kanji and Hiragana */}
-            <div className="text-center py-2 space-y-1">
-              <p className="text-5xl font-japanese font-bold text-text-primary">{currentDay.kanji}</p>
-              <p className="text-xl font-japanese text-accent font-semibold pt-1">{currentDay.hiragana}</p>
-              <p className="text-sm text-text-tertiary italic">{currentDay.romaji}</p>
-              <p className="text-xl font-semibold text-text-primary pt-2">{currentDay.meaning}</p>
-            </div>
-
-            {/* Footer Navigation */}
-            <div className="flex items-center justify-between pt-4 border-t border-border">
-              <button
-                onClick={handlePrev}
-                disabled={selectedDayIndex === 0}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border border-border transition-all ${
-                  selectedDayIndex === 0
-                    ? 'opacity-30 cursor-not-allowed bg-surface-2 text-text-tertiary'
-                    : 'bg-surface text-text-primary hover:bg-surface-2 active:scale-95'
-                }`}
-              >
-                <ChevronLeft size={16} />
-                <span>Previous</span>
-              </button>
-
-              <span className="text-xs text-text-tertiary font-mono">
-                {selectedDayIndex + 1} / {n5DaysOfWeek.length}
-              </span>
-
-              <button
-                onClick={handleNext}
-                disabled={selectedDayIndex === n5DaysOfWeek.length - 1}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border border-border transition-all ${
-                  selectedDayIndex === n5DaysOfWeek.length - 1
-                    ? 'opacity-30 cursor-not-allowed bg-surface-2 text-text-tertiary'
-                    : 'bg-accent text-white hover:opacity-90 active:scale-95'
-                }`}
-              >
-                <span>Next</span>
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Desktop Right Arrow */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handleNext()
-            }}
-            disabled={selectedDayIndex === n5DaysOfWeek.length - 1}
-            aria-label="Next day"
-            className={`hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-surface/90 border border-border shadow-xl text-text-primary ml-4 hover:bg-surface-2 transition-all ${
-              selectedDayIndex === n5DaysOfWeek.length - 1 ? 'opacity-20 cursor-not-allowed' : 'hover:scale-110 active:scale-95'
-            }`}
-          >
-            <ChevronRight size={28} />
-          </button>
-        </div>
-      )}
-    </div>
-  )
+  return <InteractiveCalendarStudio />
 }
 
 // ─── 4. NUMBERS TAB ──────────────────────────────────────────────────────────
@@ -688,7 +342,10 @@ function NumbersTab() {
       String(n.value).includes(search)
   })
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Interactive Object Stacker & Counter Studio */}
+      <InteractiveCounterStudio />
+
       <SearchBar value={search} onChange={setSearch} placeholder="Search numbers…" />
       <p className="text-xs text-text-tertiary">{filtered.length} numbers</p>
       <div className="overflow-x-auto rounded-xl border border-border shadow-card">
@@ -722,48 +379,170 @@ function NumbersTab() {
 // ─── 5. CLOCK TAB ────────────────────────────────────────────────────────────
 
 function ClockTab() {
+  const [selectedHour, setSelectedHour] = useState<number>(4)
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Interactive Clock & Time Explorer Studio */}
+      <InteractiveClockStudio selectedHour={selectedHour} onHourSelect={setSelectedHour} />
+
       {/* Hours */}
       <div>
-        <h3 className="text-sm font-bold text-text-primary mb-1">Hours — 〜時</h3>
-        <p className="text-xs text-text-tertiary mb-3">Note: 4時 = よじ (not しじ), 9時 = くじ (not きゅうじ)</p>
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-          {n5ClockHours.map(h => (
-            <div key={h.hour} className="bg-surface border border-border rounded-xl p-3 text-center shadow-card hover:border-accent/40 transition-all">
-              <p className="text-2xl font-bold text-accent">{h.hour}時</p>
-              <p className="text-sm font-japanese text-text-primary mt-1">{h.hiragana}</p>
-              <p className="text-[10px] text-text-tertiary italic">{h.romaji}</p>
-            </div>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+            <span>Hours — 〜時 (じ / ji)</span>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-2 text-text-secondary border border-border">
+              12 Hours
+            </span>
+          </h3>
+          <span className="text-xs text-text-tertiary">Click any hour card to test in the interactive studio</span>
+        </div>
+        <p className="text-xs text-text-tertiary mb-3">
+          Watch out for irregular readings: <strong className="text-amber-500">4時 = よじ</strong> (never しじ), <strong className="text-sky-500">7時 = しちじ</strong>, and <strong className="text-amber-500">9時 = くじ</strong> (never きゅうじ).
+        </p>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {n5ClockHours.map(h => {
+            const isIrregular = h.hour === 4 || h.hour === 7 || h.hour === 9
+            const isSelected = selectedHour === h.hour
+            return (
+              <div
+                key={h.hour}
+                onClick={() => setSelectedHour(h.hour)}
+                className={`bg-surface border rounded-xl p-3 text-center shadow-card cursor-pointer transition-all active:scale-[0.98] group relative flex flex-col items-center justify-between ${
+                  isSelected
+                    ? 'border-accent ring-2 ring-accent/20 shadow-md bg-accent-soft/20'
+                    : 'border-border hover:border-accent/50 hover:shadow-card-hover'
+                }`}
+              >
+                {/* Irregular Badge */}
+                {isIrregular && (
+                  <span className={`absolute top-2 right-2 text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                    h.hour === 7 ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                  }`}>
+                    ⚠️ {h.hour === 4 ? 'よじ' : h.hour === 7 ? 'しちじ' : 'くじ'}
+                  </span>
+                )}
+
+                {/* Visual Mini Clock */}
+                <div className="my-1 transition-transform group-hover:scale-105">
+                  <AnalogClock
+                    hour={h.hour}
+                    minute={0}
+                    size={58}
+                    showNumbers={false}
+                    showMinuteTicks={false}
+                  />
+                </div>
+
+                {/* Kanji & Readings */}
+                <div className="mt-1">
+                  <p className="text-xl font-bold text-accent font-japanese">{h.hour}時</p>
+                  <p className="text-sm font-japanese font-semibold text-text-primary mt-0.5">{h.hiragana}</p>
+                  <p className="text-[10px] text-text-tertiary italic">{h.romaji}</p>
+                </div>
+
+                {/* Audio Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    playKanaAudio(h.hiragana)
+                  }}
+                  className="mt-2 text-[11px] text-text-tertiary hover:text-accent p-1 rounded-md hover:bg-surface-2 transition-colors flex items-center gap-1"
+                  title={`Listen to ${h.hiragana}`}
+                >
+                  <Volume2 size={12} />
+                  <span className="text-[10px]">Play</span>
+                </button>
+              </div>
+            )
+          })}
         </div>
       </div>
 
       {/* Minutes */}
       <div>
-        <h3 className="text-sm font-bold text-text-primary mb-1">Minutes — 〜分</h3>
-        <p className="text-xs text-text-tertiary mb-3">Careful: 1分, 3分, 6分, 8分, 10分 have phonetic changes (っぷ)</p>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+          <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
+            <span>Minutes — 〜分 (ふん / ぷん)</span>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-surface-2 text-text-secondary border border-border">
+              Sound Changes
+            </span>
+          </h3>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="flex items-center gap-1 text-[11px] text-sky-600 dark:text-sky-400 font-medium">
+              <span className="w-2 h-2 rounded-full bg-sky-500 inline-block" /> ぷん (pun)
+            </span>
+            <span className="flex items-center gap-1 text-[11px] text-indigo-600 dark:text-indigo-400 font-medium">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block" /> ふん (fun)
+            </span>
+          </div>
+        </div>
+        <p className="text-xs text-text-tertiary mb-3">
+          Minutes 1, 3, 4, 6, 8, 10 undergo phonetic hardening into <strong className="text-sky-500">〜っぷん / ぷん</strong>. Other minutes use regular <strong className="text-indigo-500">〜ふん</strong>. 30分 is commonly called <strong className="text-accent">半 (はん)</strong>.
+        </p>
+
         <div className="overflow-x-auto rounded-xl border border-border shadow-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-2 border-b border-border">
-                <th className="text-left px-4 py-2 text-xs font-bold text-text-tertiary uppercase">Min</th>
-                <th className="text-left px-4 py-2 text-xs font-bold text-text-tertiary uppercase">Kanji</th>
-                <th className="text-left px-4 py-2 text-xs font-bold text-text-tertiary uppercase">Hiragana</th>
-                <th className="text-left px-4 py-2 text-xs font-bold text-text-tertiary uppercase">Romaji</th>
-                <th className="text-left px-4 py-2 text-xs font-bold text-text-tertiary uppercase">Note</th>
+                <th className="text-left px-4 py-2.5 text-xs font-bold text-text-tertiary uppercase">Dial</th>
+                <th className="text-left px-4 py-2.5 text-xs font-bold text-text-tertiary uppercase">Min</th>
+                <th className="text-left px-4 py-2.5 text-xs font-bold text-text-tertiary uppercase">Kanji</th>
+                <th className="text-left px-4 py-2.5 text-xs font-bold text-text-tertiary uppercase">Hiragana</th>
+                <th className="text-left px-4 py-2.5 text-xs font-bold text-text-tertiary uppercase">Romaji</th>
+                <th className="text-left px-4 py-2.5 text-xs font-bold text-text-tertiary uppercase">Sound Rule</th>
+                <th className="text-right px-4 py-2.5 text-xs font-bold text-text-tertiary uppercase">Audio</th>
               </tr>
             </thead>
             <tbody>
-              {n5ClockMinutes.map((m, i) => (
-                <tr key={i} className="border-b border-border last:border-0 hover:bg-surface-2/50">
-                  <td className="px-4 py-2 font-bold text-accent">{m.minute}</td>
-                  <td className="px-4 py-2 font-japanese">{m.kanji}</td>
-                  <td className="px-4 py-2 font-japanese text-text-primary font-bold">{m.hiragana}</td>
-                  <td className="px-4 py-2 text-text-secondary italic text-[11px]">{m.romaji}</td>
-                  <td className="px-4 py-2 text-[11px] text-info">{m.note ?? ''}</td>
-                </tr>
-              ))}
+              {n5ClockMinutes.map((m, i) => {
+                const isPun = m.hiragana.includes('ぷん')
+                const isHalf = m.minute === 30
+                return (
+                  <tr key={i} className="border-b border-border last:border-0 hover:bg-surface-2/50 transition-colors">
+                    <td className="px-4 py-2">
+                      <AnalogClock
+                        hour={12}
+                        minute={m.minute}
+                        size={32}
+                        showNumbers={false}
+                        showMinuteTicks={false}
+                      />
+                    </td>
+                    <td className="px-4 py-2 font-bold text-accent">{m.minute}</td>
+                    <td className="px-4 py-2 font-japanese font-medium">{m.kanji}</td>
+                    <td className="px-4 py-2 font-japanese text-text-primary font-bold">{m.hiragana}</td>
+                    <td className="px-4 py-2 text-text-secondary italic text-[11px]">{m.romaji}</td>
+                    <td className="px-4 py-2 text-[11px]">
+                      {isHalf ? (
+                        <span className="px-2 py-0.5 rounded-full bg-accent/15 text-accent font-semibold">
+                          ⭐ 半 (はん / Half past)
+                        </span>
+                      ) : isPun ? (
+                        <span className="px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-600 dark:text-sky-400 font-semibold">
+                          Sound shift: ぷん
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 font-medium">
+                          Regular: ふん
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      <button
+                        type="button"
+                        onClick={() => playKanaAudio(m.hiragana.split('/')[0].trim())}
+                        className="p-1 rounded text-text-tertiary hover:text-accent hover:bg-surface transition-colors"
+                        title={`Listen to ${m.hiragana}`}
+                      >
+                        <Volume2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -771,14 +550,26 @@ function ClockTab() {
 
       {/* Time words */}
       <div>
-        <h3 className="text-sm font-bold text-text-primary mb-3">Time Vocabulary</h3>
+        <h3 className="text-sm font-bold text-text-primary mb-3">Essential Time Words & Modifiers</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {n5TimeWords.map((w, i) => (
-            <div key={i} className="bg-surface border border-border rounded-xl p-3 shadow-card">
-              <p className="text-xl font-japanese font-bold text-text-primary">{w.hiragana}</p>
-              {w.kanji && <p className="text-xs font-japanese text-text-tertiary">{w.kanji}</p>}
-              <p className="text-[11px] text-text-tertiary italic">{w.romaji}</p>
-              <p className="text-xs text-text-primary font-medium mt-1">{w.meaning}</p>
+            <div key={i} className="bg-surface border border-border rounded-xl p-3 shadow-card hover:border-accent/40 transition-all flex flex-col justify-between">
+              <div>
+                <div className="flex items-start justify-between">
+                  <p className="text-xl font-japanese font-bold text-text-primary">{w.hiragana}</p>
+                  <button
+                    type="button"
+                    onClick={() => playKanaAudio(w.hiragana)}
+                    className="p-1 text-text-tertiary hover:text-accent transition-colors"
+                    title={`Listen to ${w.hiragana}`}
+                  >
+                    <Volume2 size={14} />
+                  </button>
+                </div>
+                {w.kanji && <p className="text-xs font-japanese text-text-tertiary mt-0.5">{w.kanji}</p>}
+                <p className="text-[11px] text-text-tertiary italic">{w.romaji}</p>
+              </div>
+              <p className="text-xs text-text-primary font-medium mt-2 pt-2 border-t border-border/50">{w.meaning}</p>
             </div>
           ))}
         </div>
@@ -786,20 +577,45 @@ function ClockTab() {
 
       {/* Example times */}
       <div>
-        <h3 className="text-sm font-bold text-text-primary mb-3">Example Time Expressions</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <h3 className="text-sm font-bold text-text-primary mb-3">Real-World Time Expressions with Clocks</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
-            { ja: 'ごぜん くじ じゅっぷん', kanji: '午前 9時 10分', en: '9:10 AM' },
-            { ja: 'ごご さんじ はん', kanji: '午後 3時 半', en: '3:30 PM' },
-            { ja: 'よじ じゅうごふん まえ', kanji: '4時 15分 前', en: '3:45 (15 minutes before 4)' },
-            { ja: 'くじ ごふん すぎ', kanji: '9時 5分 過ぎ', en: '9:05 (5 minutes past 9)' },
-            { ja: 'ちょうど じゅうにじ', kanji: 'ちょうど 12時', en: 'exactly 12 o\'clock' },
-            { ja: 'いま なんじ ですか', kanji: '今 何時 ですか', en: 'What time is it now?' },
+            { ja: 'ごぜん くじ じゅっぷん', kanji: '午前 9時 10分', en: '9:10 AM', h: 9, m: 10 },
+            { ja: 'ごご さんじ はん', kanji: '午後 3時 半', en: '3:30 PM', h: 3, m: 30 },
+            { ja: 'よじ じゅうごふん まえ', kanji: '4時 15分 前', en: '3:45 (15 minutes before 4)', h: 3, m: 45 },
+            { ja: 'くじ ごふん すぎ', kanji: '9時 5分 過ぎ', en: '9:05 (5 minutes past 9)', h: 9, m: 5 },
+            { ja: 'ちょうど じゅうにじ', kanji: 'ちょうど 12時', en: "exactly 12 o'clock", h: 12, m: 0 },
+            { ja: 'いま なんじ ですか', kanji: '今 何時 ですか', en: 'What time is it now?', isQuestion: true },
           ].map((ex, i) => (
-            <div key={i} className="bg-accent-soft/30 border border-accent/20 rounded-xl p-3">
-              <p className="text-base font-japanese font-bold text-text-primary">{ex.ja}</p>
-              <p className="text-xs font-japanese text-text-tertiary">{ex.kanji}</p>
-              <p className="text-xs text-text-secondary italic mt-1">{ex.en}</p>
+            <div key={i} className="bg-surface border border-accent/20 rounded-xl p-3.5 shadow-card hover:border-accent/40 transition-all flex items-center gap-3">
+              <div className="flex-shrink-0">
+                {ex.isQuestion ? (
+                  <div className="w-12 h-12 rounded-full bg-accent-soft flex items-center justify-center text-xl">
+                    ❓
+                  </div>
+                ) : (
+                  <AnalogClock
+                    hour={ex.h!}
+                    minute={ex.m!}
+                    size={48}
+                    showNumbers={false}
+                    showMinuteTicks={false}
+                  />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-base font-japanese font-bold text-text-primary truncate">{ex.ja}</p>
+                <p className="text-xs font-japanese text-text-tertiary">{ex.kanji}</p>
+                <p className="text-xs text-text-secondary italic mt-0.5">{ex.en}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => playKanaAudio(ex.ja)}
+                className="p-2 rounded-lg bg-surface-2 hover:bg-accent-soft hover:text-accent text-text-tertiary transition-all"
+                title={`Listen to ${ex.ja}`}
+              >
+                <Volume2 size={15} />
+              </button>
             </div>
           ))}
         </div>
@@ -808,231 +624,10 @@ function ClockTab() {
   )
 }
 
-// ─── 6 & 7. FAMILY TABS ──────────────────────────────────────────────────────
+// ─── 6. FAMILY TAB ───────────────────────────────────────────────────────────
 
-function FamilyCard({ f, onClick }: { f: FamilyMember; onClick: () => void }) {
-  return (
-    <div
-      onClick={onClick}
-      className="bg-surface border border-border rounded-xl p-3.5 shadow-card hover:shadow-card-hover hover:border-accent/40 cursor-pointer transition-all active:scale-[0.99] group"
-    >
-      <div className="flex items-start justify-between">
-        <p className="text-xl font-japanese font-bold text-text-primary group-hover:text-accent transition-colors">{f.hiragana}</p>
-        <span className="text-[10px] text-text-tertiary opacity-0 group-hover:opacity-100 transition-opacity">View →</span>
-      </div>
-      {f.kanji && <p className="text-xs font-japanese text-text-tertiary">{f.kanji}</p>}
-      <p className="text-[11px] text-text-tertiary italic">{f.romaji}</p>
-      <p className="text-xs text-text-primary font-semibold mt-1">{f.meaning}</p>
-      {f.note && <p className="text-[10px] text-info mt-1">💡 {f.note}</p>}
-    </div>
-  )
-}
-
-function FamilyTab({ own }: { own: boolean }) {
-  const data = own ? n5FamilyOwn : n5FamilyOthers
-  const [search, setSearch] = useState('')
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
-
-  const filtered = data.filter(f => !search || f.hiragana.includes(search) || f.meaning.toLowerCase().includes(search.toLowerCase()))
-  const currentItem = selectedIndex !== null ? filtered[selectedIndex] : null
-
-  function handlePrev() {
-    if (selectedIndex !== null && selectedIndex > 0) {
-      setSelectedIndex(selectedIndex - 1)
-    }
-  }
-
-  function handleNext() {
-    if (selectedIndex !== null && selectedIndex < filtered.length - 1) {
-      setSelectedIndex(selectedIndex + 1)
-    }
-  }
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (selectedIndex === null) return
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault()
-        handlePrev()
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault()
-        handleNext()
-      } else if (e.key === 'Escape') {
-        setSelectedIndex(null)
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedIndex, filtered.length])
-
-  return (
-    <div className="space-y-4">
-      <div className={`p-4 rounded-xl border text-sm ${own ? 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-300' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-300'}`}>
-        {own
-          ? '👤 These are humble (謙譲語) words — used when speaking about YOUR OWN family to others.'
-          : '🎩 These are respectful (尊敬語) words — used when speaking about SOMEONE ELSE\'S family.'}
-      </div>
-      <SearchBar value={search} onChange={(v) => { setSearch(v); setSelectedIndex(null); }} placeholder="Search family words…" />
-      <p className="text-xs text-text-tertiary">{filtered.length} words</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {filtered.map((f, i) => (
-          <FamilyCard key={i} f={f} onClick={() => setSelectedIndex(i)} />
-        ))}
-      </div>
-
-      {/* Family Member Modal */}
-      {currentItem && selectedIndex !== null && (
-        <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setSelectedIndex(null)}
-        >
-          {/* Desktop Left Arrow */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handlePrev()
-            }}
-            disabled={selectedIndex === 0}
-            aria-label="Previous word"
-            className={`hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-surface/90 border border-border shadow-xl text-text-primary mr-4 hover:bg-surface-2 transition-all ${
-              selectedIndex === 0 ? 'opacity-20 cursor-not-allowed' : 'hover:scale-110 active:scale-95'
-            }`}
-          >
-            <ChevronLeft size={28} />
-          </button>
-
-          <div
-            className="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-sm p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
-                own
-                  ? 'bg-blue-500/10 text-blue-600 dark:text-blue-300 border-blue-500/20'
-                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/20'
-              }`}>
-                {own ? 'Own Family (Humble)' : "Others' Family (Respectful)"}
-              </span>
-              <button
-                onClick={() => setSelectedIndex(null)}
-                className="text-text-tertiary hover:text-text-primary p-1 rounded-lg hover:bg-surface-2 transition-colors"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Word details */}
-            <div className="text-center py-2 space-y-1">
-              <p className="text-4xl font-japanese font-bold text-text-primary">{currentItem.hiragana}</p>
-              {currentItem.kanji && (
-                <p className="text-lg font-japanese text-text-tertiary">（{currentItem.kanji}）</p>
-              )}
-              <p className="text-sm text-text-tertiary italic">{currentItem.romaji}</p>
-              <p className="text-xl font-bold text-text-primary pt-2">{currentItem.meaning}</p>
-              {currentItem.note && (
-                <p className="text-xs text-info bg-info/10 border border-info/20 rounded-lg p-2.5 mt-3 text-left">
-                  💡 {currentItem.note}
-                </p>
-              )}
-            </div>
-
-            {/* Footer Navigation */}
-            <div className="flex items-center justify-between pt-4 border-t border-border">
-              <button
-                onClick={handlePrev}
-                disabled={selectedIndex === 0}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border border-border transition-all ${
-                  selectedIndex === 0
-                    ? 'opacity-30 cursor-not-allowed bg-surface-2 text-text-tertiary'
-                    : 'bg-surface text-text-primary hover:bg-surface-2 active:scale-95'
-                }`}
-              >
-                <ChevronLeft size={16} />
-                <span>Previous</span>
-              </button>
-
-              <span className="text-xs text-text-tertiary font-mono">
-                {selectedIndex + 1} / {filtered.length}
-              </span>
-
-              <button
-                onClick={handleNext}
-                disabled={selectedIndex === filtered.length - 1}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border border-border transition-all ${
-                  selectedIndex === filtered.length - 1
-                    ? 'opacity-30 cursor-not-allowed bg-surface-2 text-text-tertiary'
-                    : 'bg-accent text-white hover:opacity-90 active:scale-95'
-                }`}
-              >
-                <span>Next</span>
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Desktop Right Arrow */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handleNext()
-            }}
-            disabled={selectedIndex === filtered.length - 1}
-            aria-label="Next word"
-            className={`hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-surface/90 border border-border shadow-xl text-text-primary ml-4 hover:bg-surface-2 transition-all ${
-              selectedIndex === filtered.length - 1 ? 'opacity-20 cursor-not-allowed' : 'hover:scale-110 active:scale-95'
-            }`}
-          >
-            <ChevronRight size={28} />
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function FamilyComparisonTab() {
-  return (
-    <div className="space-y-4">
-      <div className="p-4 rounded-xl border border-border bg-surface-2 text-sm text-text-primary">
-        <strong>Key Rule:</strong> In Japanese, you use different words for family members depending on whose family you are talking about.
-        <br /><span className="text-blue-700 font-semibold">Blue (Own)</span> = humble forms used for your own family.
-        <span className="text-green-700 font-semibold ml-2">Green (Others')</span> = respectful forms for others' family.
-      </div>
-      <div className="overflow-x-auto rounded-xl border border-border shadow-card">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-surface-2 border-b border-border">
-              <th className="text-left px-4 py-3 text-xs font-bold text-text-tertiary uppercase">Relationship</th>
-              <th className="text-left px-4 py-3 text-xs font-bold text-blue-600 uppercase">Own Family (humble)</th>
-              <th className="text-left px-4 py-3 text-xs font-bold text-green-600 uppercase">Others' Family (respectful)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {n5FamilyOwn.map((own, i) => {
-              const other = n5FamilyOthers[i]
-              return (
-                <tr key={i} className="border-b border-border last:border-0 hover:bg-surface-2/50 transition-colors">
-                  <td className="px-4 py-3 text-text-secondary font-medium">{own.meaning.replace('my ', '')}</td>
-                  <td className="px-4 py-3">
-                    <p className="font-japanese font-bold text-blue-700">{own.hiragana}</p>
-                    <p className="text-[10px] text-text-tertiary italic">{own.romaji}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    {other && <>
-                      <p className="font-japanese font-bold text-green-700">{other.hiragana}</p>
-                      <p className="text-[10px] text-text-tertiary italic">{other.romaji}</p>
-                    </>}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
+function FamilyUnifiedTab() {
+  return <InteractiveFamilyTreeStudio />
 }
 
 // ─── 8. WH QUESTIONS TAB ─────────────────────────────────────────────────────
@@ -1040,6 +635,7 @@ function FamilyComparisonTab() {
 function WHTab() {
   const [search, setSearch] = useState('')
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+  const showKanji = settingsService.shouldShowKanji()
 
   const filtered = n5WHQuestions.filter(q =>
     !search ||
@@ -1080,7 +676,10 @@ function WHTab() {
   }, [selectedIndex, filtered.length])
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Interactive 5W1H Question Studio */}
+      <InteractiveWHStudio />
+
       <SearchBar value={search} onChange={(v) => { setSearch(v); setSelectedIndex(null); }} placeholder="Search WH questions…" />
       <p className="text-xs text-text-tertiary">{filtered.length} question words</p>
       <div className="space-y-3">
@@ -1093,7 +692,7 @@ function WHTab() {
             <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
               <div className="min-w-[120px]">
                 <p className="text-2xl font-japanese font-bold text-accent group-hover:scale-105 origin-left transition-transform">{q.hiragana}</p>
-                {q.kanji && <p className="text-xs font-japanese text-text-tertiary">{q.kanji}</p>}
+                {showKanji && q.kanji && <p className="text-xs font-japanese text-text-tertiary">{q.kanji}</p>}
                 <p className="text-[11px] text-text-tertiary italic">{q.romaji}</p>
               </div>
               <div className="flex-1">
@@ -1154,7 +753,7 @@ function WHTab() {
             {/* Word Display */}
             <div className="text-center py-2 space-y-1 border-b border-border pb-4">
               <p className="text-5xl font-japanese font-bold text-accent">{currentItem.hiragana}</p>
-              {currentItem.kanji && (
+              {showKanji && currentItem.kanji && (
                 <p className="text-lg font-japanese text-text-tertiary">（{currentItem.kanji}）</p>
               )}
               <p className="text-sm text-text-tertiary italic">{currentItem.romaji}</p>
@@ -3071,19 +2670,12 @@ function VerbChartTab() {
   )
 }
 
-// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
-
 export default function ReferencePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const categoryParam = (searchParams.get('category') || searchParams.get('tab')) as TabId | null
-  const initialTab: TabId = (categoryParam && TABS.some(t => t.id === categoryParam)) ? categoryParam : 'greetings'
+  const initialTab: TabId = (categoryParam && TABS.some(t => t.id === categoryParam)) ? categoryParam : 'verbs'
 
   const [activeTab, setActiveTab] = useState<TabId>(initialTab)
-  const [selectedGroup, setSelectedGroup] = useState<TabGroupId>('all')
-  const [viewMode, setViewMode] = useState<'scroll' | 'grid'>('scroll')
-  const tabsContainerRef = useRef<HTMLDivElement>(null)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(true)
 
   // Sync with URL query parameter changes
   useEffect(() => {
@@ -3097,61 +2689,22 @@ export default function ReferencePage() {
     setSearchParams({ category: tabId }, { replace: true })
   }
 
-  function updateScrollButtons() {
-    const el = tabsContainerRef.current
-    if (!el) return
-    setCanScrollLeft(el.scrollLeft > 5)
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 5)
-  }
-
-  function scrollTabs(direction: 'left' | 'right') {
-    const el = tabsContainerRef.current
-    if (!el) return
-    const offset = direction === 'left' ? -260 : 260
-    el.scrollBy({ left: offset, behavior: 'smooth' })
-  }
-
-  useEffect(() => {
-    updateScrollButtons()
-    const el = tabsContainerRef.current
-    if (el) {
-      el.addEventListener('scroll', updateScrollButtons)
-      window.addEventListener('resize', updateScrollButtons)
-      return () => {
-        el.removeEventListener('scroll', updateScrollButtons)
-        window.removeEventListener('resize', updateScrollButtons)
-      }
-    }
-  }, [viewMode])
-
-  useEffect(() => {
-    if (viewMode === 'scroll' && tabsContainerRef.current) {
-      const activeEl = tabsContainerRef.current.querySelector<HTMLElement>(`[data-tab-id="${activeTab}"]`)
-      if (activeEl) {
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-      }
-    }
-  }, [activeTab, viewMode])
-
-  const filteredTabs = useMemo(() => {
-    if (selectedGroup === 'all') return TABS
-    return TABS.filter((t) => t.group === selectedGroup)
-  }, [selectedGroup])
-
   function renderTab() {
     switch (activeTab) {
-      case 'greetings': return <GreetingsTab />
-      case 'body': return <BodyPartsTab />
-      case 'days': return <DaysTab />
-      case 'numbers': return <NumbersTab />
-      case 'clock': return <ClockTab />
-      case 'family-own': return <FamilyTab own={true} />
-      case 'family-oth': return <FamilyComparisonTab />
-      case 'wh': return <WHTab />
+      case 'verbs': return <VerbChartTab />
+      case 'adj': return <AdjectivesTab />
       case 'particles': return <ParticlesTab />
       case 'kanji': return <KanjiTab />
-      case 'adj': return <AdjectivesTab />
-      case 'verbs': return <VerbChartTab />
+      case 'numbers': return <NumbersTab />
+      case 'clock': return <ClockTab />
+      case 'days': return <DaysTab />
+      case 'wh': return <WHTab />
+      case 'greetings': return <GreetingsTab />
+      case 'family':
+      case 'family-own':
+      case 'family-oth':
+        return <FamilyUnifiedTab />
+      case 'body': return <BodyPartsTab />
       default: return null
     }
   }
@@ -3165,167 +2718,45 @@ export default function ReferencePage() {
         <div className="flex items-center gap-2 mb-1">
           <span className="text-xs font-semibold text-accent tracking-widest uppercase">JLPT N5</span>
           <span className="w-1 h-1 rounded-full bg-border-strong" />
-          <span className="text-xs text-text-secondary font-japanese">完全参照</span>
+          <span className="text-xs text-text-secondary font-japanese">必須基礎</span>
         </div>
-        <h2 className="text-xl font-bold text-text-primary">N5 Complete Reference</h2>
+        <h2 className="text-xl font-bold text-text-primary">N5 Essentials</h2>
         <p className="text-sm text-text-secondary mt-1">
-          All essential N5 content organized by topic — 12 comprehensive sections, exam-focused.
+          All essential building blocks, conjugation charts, and quick lookup guides organized by topic — 12 comprehensive sections.
         </p>
       </div>
 
-      {/* Category Navigation Bar — sticky with scroll controls, group filters & layout switcher */}
-      <div className="sticky top-0 z-30 -mx-4 px-4 pt-2.5 pb-2.5 bg-background/90 backdrop-blur-md border-b border-border shadow-sm">
-        {/* Top Control Bar: Group Filter Chips + View Mode Switcher */}
-        <div className="flex items-center justify-between gap-2 mb-2">
-          {/* Category Group Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar-x pb-0.5 flex-1">
-            {TAB_GROUPS.map((group) => {
-              const isGroupActive = selectedGroup === group.id
-              return (
-                <button
-                  key={group.id}
-                  onClick={() => setSelectedGroup(group.id)}
-                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                    isGroupActive
-                      ? 'bg-text-primary text-background shadow-xs'
-                      : 'bg-surface border border-border text-text-secondary hover:text-text-primary hover:bg-surface-2'
-                  }`}
-                >
-                  <span>{group.label}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                      isGroupActive
-                        ? 'bg-background/20 text-background'
-                        : 'bg-surface-2 text-text-tertiary'
-                    }`}
-                  >
-                    {group.count}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* View Mode Switcher: Single row scroll vs All-categories grid */}
-          <button
-            onClick={() => setViewMode(m => (m === 'scroll' ? 'grid' : 'scroll'))}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-surface hover:bg-surface-2 text-text-secondary hover:text-text-primary text-xs font-medium transition-colors shadow-sm flex-shrink-0"
-            title={viewMode === 'scroll' ? 'Show all categories in a grid' : 'Switch to compact scroll row'}
-          >
-            {viewMode === 'scroll' ? (
-              <>
-                <LayoutGrid size={13} className="text-accent" />
-                <span className="font-semibold hidden sm:inline">Show All Grid</span>
-              </>
-            ) : (
-              <>
-                <Rows size={13} className="text-accent" />
-                <span className="font-semibold hidden sm:inline">Compact Scroll</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        {viewMode === 'scroll' ? (
-          /* Horizontal scroll row with Left & Right mouse buttons + visible custom scrollbar */
-          <div className="relative flex items-center gap-1.5">
-            {/* Left mouse scroll button */}
+      {/* 12 Essentials Subcategories Grid — All visible at once in structured logical order */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.id
+          return (
             <button
-              onClick={() => scrollTabs('left')}
-              disabled={!canScrollLeft}
-              aria-label="Scroll categories left"
-              className={`p-2 rounded-lg border border-border bg-surface shadow-sm transition-all flex-shrink-0 z-10 ${
-                canScrollLeft
-                  ? 'text-text-primary hover:bg-surface-2 hover:border-border-strong active:scale-95'
-                  : 'opacity-25 cursor-not-allowed text-text-tertiary'
-              }`}
+              key={tab.id}
+              onClick={() => handleSelectTab(tab.id)}
+              className={[
+                'group flex items-center justify-between gap-2 p-2.5 rounded-xl text-xs font-semibold transition-all text-left border cursor-pointer',
+                isActive
+                  ? 'bg-accent text-white border-accent shadow-sm ring-2 ring-accent/25 scale-[1.02]'
+                  : 'bg-surface border-border/80 text-text-secondary hover:bg-surface-2 hover:text-text-primary hover:border-border-strong',
+              ].join(' ')}
             >
-              <ChevronLeft size={16} />
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-base flex-shrink-0 select-none">{tab.emoji}</span>
+                <span className="truncate">{tab.label}</span>
+              </div>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono flex-shrink-0 transition-colors ${
+                  isActive
+                    ? 'bg-white/25 text-white font-bold'
+                    : 'bg-surface-2 text-text-tertiary group-hover:text-text-secondary'
+                }`}
+              >
+                {tab.count}
+              </span>
             </button>
-
-            {/* Scrollable container with visible scrollbar */}
-            <div
-              ref={tabsContainerRef}
-              className="flex gap-1.5 overflow-x-auto custom-scrollbar-x pb-2 pt-0.5 scroll-smooth flex-1"
-            >
-              {filteredTabs.map((tab) => {
-                const isActive = activeTab === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    data-tab-id={tab.id}
-                    onClick={() => handleSelectTab(tab.id)}
-                    className={[
-                      'group flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0 border',
-                      isActive
-                        ? 'bg-accent text-white border-accent shadow-md scale-[1.02]'
-                        : 'bg-surface border-border text-text-secondary hover:bg-surface-2 hover:text-text-primary hover:border-border-strong',
-                    ].join(' ')}
-                  >
-                    <span className="text-sm">{tab.emoji}</span>
-                    <span>{tab.label}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-md font-mono transition-colors ${
-                        isActive
-                          ? 'bg-white/25 text-white font-bold'
-                          : 'bg-surface-2 text-text-tertiary group-hover:text-text-secondary'
-                      }`}
-                    >
-                      {tab.count}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-
-            {/* Right mouse scroll button */}
-            <button
-              onClick={() => scrollTabs('right')}
-              disabled={!canScrollRight}
-              aria-label="Scroll categories right"
-              className={`p-2 rounded-lg border border-border bg-surface shadow-sm transition-all flex-shrink-0 z-10 ${
-                canScrollRight
-                  ? 'text-text-primary hover:bg-surface-2 hover:border-border-strong active:scale-95'
-                  : 'opacity-25 cursor-not-allowed text-text-tertiary'
-              }`}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        ) : (
-          /* Grid View: Categorized cleanly */
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 pt-1 pb-1">
-            {filteredTabs.map((tab) => {
-              const isActive = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleSelectTab(tab.id)}
-                  className={[
-                    'group flex items-center justify-between gap-2 p-2.5 rounded-xl text-xs font-semibold transition-all text-left border',
-                    isActive
-                      ? 'bg-accent text-white border-accent shadow-md scale-[1.02]'
-                      : 'bg-surface border-border text-text-secondary hover:bg-surface-2 hover:text-text-primary hover:border-border-strong',
-                  ].join(' ')}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-base flex-shrink-0">{tab.emoji}</span>
-                    <span className="truncate">{tab.label}</span>
-                  </div>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono flex-shrink-0 ${
-                      isActive
-                        ? 'bg-white/25 text-white font-bold'
-                        : 'bg-surface-2 text-text-tertiary group-hover:text-text-secondary'
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        )}
+          )
+        })}
       </div>
 
       {/* Tab content */}

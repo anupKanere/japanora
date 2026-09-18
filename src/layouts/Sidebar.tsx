@@ -27,7 +27,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { to: '/dashboard',  icon: <LayoutDashboard size={17} />, label: 'Dashboard',    labelJa: 'ホーム'     },
   { to: '/kana',       icon: <Languages size={17} />,       label: 'Kana (あ/ア)',  labelJa: '仮名'       },
-  { to: '/reference',  icon: <BookText size={17} />,        label: 'N5 Reference', labelJa: '参照'       },
+  { to: '/reference',  icon: <BookText size={17} />,        label: 'Essentials',   labelJa: '基礎'       },
   { to: '/vocabulary', icon: <BookMarked size={17} />,      label: 'Vocabulary',   labelJa: '語彙'       },
   { to: '/grammar',    icon: <FileText size={17} />,        label: 'Grammar',      labelJa: '文法'       },
   { to: '/learn',      icon: <BookOpen size={17} />,        label: 'Learn',        labelJa: 'まなぶ'     },

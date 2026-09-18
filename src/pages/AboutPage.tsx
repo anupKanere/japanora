@@ -21,6 +21,7 @@ import {
   MessageCircle,
   X,
 } from 'lucide-react'
+import { playKanaAudio } from '@/data/kana/kana-data'
 
 // ─── Floating sakura petal animation ─────────────────────────────────────────
 
@@ -343,13 +344,7 @@ export default function AboutPage() {
   }
 
   function playJapaneseSpeech(text: string) {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel()
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = 'ja-JP'
-      utterance.rate = 0.85
-      window.speechSynthesis.speak(utterance)
-    }
+    playKanaAudio(text)
   }
 
   function handleTeamPrev() {

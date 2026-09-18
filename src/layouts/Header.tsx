@@ -11,7 +11,7 @@ const PAGE_META: Record<string, { en: string; ja: string }> = {
   '/learn':      { en: 'Learn',        ja: 'まなぶ' },
   '/grammar':    { en: 'Grammar',      ja: '文法' },
   '/vocabulary': { en: 'Vocabulary',   ja: '語彙' },
-  '/reference':  { en: 'N5 Reference', ja: '参照' },
+  '/reference':  { en: 'Essentials',   ja: '基礎' },
   '/practice':   { en: 'Practice',     ja: '練習' },
   '/revision':   { en: 'Revision',     ja: '復習' },
   '/about':      { en: 'About',        ja: 'について' },

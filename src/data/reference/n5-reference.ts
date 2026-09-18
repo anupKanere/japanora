@@ -725,9 +725,9 @@ export const n5Adjectives: Adjective[] = [
   { type: 'i', hiragana: 'きたない', kanji: '汚い', romaji: 'kitanai', meaning: 'dirty / messy', conjugation: { negative: 'きたなくない', past: 'きたなかった', negativePast: 'きたなくなかった' } },
   { type: 'i', hiragana: 'いたい', kanji: '痛い', romaji: 'itai', meaning: 'painful / hurts', conjugation: { negative: 'いたくない', past: 'いたかった', negativePast: 'いたくなかった' } },
   { type: 'i', hiragana: 'ねむい', kanji: '眠い', romaji: 'nemui', meaning: 'sleepy', conjugation: { negative: 'ねむくない', past: 'ねむかった', negativePast: 'ねむくなかった' } },
-  { type: 'i', hiragana: 'つかれた', kanji: '疲れた', romaji: 'tsukareta', meaning: 'tired', conjugation: { negative: 'つかれていない', past: 'つかれた', negativePast: 'つかれていなかった' } },
-  { type: 'i', hiragana: 'おなかがすいた', romaji: 'onaka ga suita', meaning: 'hungry', conjugation: { negative: 'おなかがすいていない', past: 'おなかがすいた', negativePast: 'おなかがすいていなかった' } },
-  { type: 'i', hiragana: 'のどがかわいた', romaji: 'nodo ga kawaita', meaning: 'thirsty', conjugation: { negative: 'のどがかわいていない', past: 'のどがかわいた', negativePast: 'のどがかわいていなかった' } },
+  { type: 'i', hiragana: 'はずかしい', kanji: '恥ずかしい', romaji: 'hazukashii', meaning: 'embarrassing / shy', conjugation: { negative: 'はずかしくない', past: 'はずかしかった', negativePast: 'はずかしくなかった' } },
+  { type: 'i', hiragana: 'こまかい', kanji: '細かい', romaji: 'komakai', meaning: 'small / fine / detailed (e.g. small change)', conjugation: { negative: 'こまかくない', past: 'こまかかった', negativePast: 'こまかくなかった' } },
+  { type: 'i', hiragana: 'やさしい', kanji: '易しい', romaji: 'yasashii', meaning: 'easy / simple', conjugation: { negative: 'やさしくない', past: 'やさしかった', negativePast: 'やさしくなかった' } },
   { type: 'i', hiragana: 'すごい', romaji: 'sugoi', meaning: 'amazing / terrible (extreme)', conjugation: { negative: 'すごくない', past: 'すごかった', negativePast: 'すごくなかった' } },
   { type: 'i', hiragana: 'こい', kanji: '濃い', romaji: 'koi', meaning: 'thick / dark (color/flavor)', conjugation: { negative: 'こくない', past: 'こかった', negativePast: 'こくなかった' } },
   { type: 'i', hiragana: 'うすい', kanji: '薄い', romaji: 'usui', meaning: 'weak (flavor/taste) / thin (flat objects) / pale (color)', conjugation: { negative: 'うすくない', past: 'うすかった', negativePast: 'うすくなかった' } },
@@ -759,7 +759,7 @@ export const n5Adjectives: Adjective[] = [
   { type: 'i', hiragana: 'さびしい', kanji: '寂しい', romaji: 'sabishii (or sabushii)', meaning: 'lonely', conjugation: { negative: 'さびしくない', past: 'さびしかった', negativePast: 'さびしくなかった' } },
   { type: 'i', hiragana: 'ほしい', kanji: '欲しい', romaji: 'hoshii', meaning: 'wanted / desired', conjugation: { negative: 'ほしくない', past: 'ほしかった', negativePast: 'ほしくなかった' } },
 
-  // ── な-Adjectives (41) ────────────────────────────────────────────
+  // ── な-Adjectives (42) ────────────────────────────────────────────
   { type: 'na', hiragana: 'ひまな', kanji: '暇な', romaji: 'hima', meaning: 'free / not busy', conjugation: { negative: 'ひまではない', past: 'ひまだった', negativePast: 'ひまではなかった' } },
   { type: 'na', hiragana: 'すきな', kanji: '好きな', romaji: 'suki', meaning: 'liked / favorite', conjugation: { negative: 'すきではない', past: 'すきだった', negativePast: 'すきではなかった' } },
   { type: 'na', hiragana: 'きらいな', kanji: '嫌いな', romaji: 'kirai', meaning: 'disliked', conjugation: { negative: 'きらいではない', past: 'きらいだった', negativePast: 'きらいではなかった' } },
@@ -801,6 +801,7 @@ export const n5Adjectives: Adjective[] = [
   { type: 'na', hiragana: 'ばかな', kanji: '馬鹿な', romaji: 'bakana', meaning: 'stupid / foolish', conjugation: { negative: 'ばかではない', past: 'ばかだった', negativePast: 'ばかではなかった' } },
   { type: 'na', hiragana: 'らくな', kanji: '楽な', romaji: 'rakuna', meaning: 'easy / comfortable', conjugation: { negative: 'らくではない', past: 'らくだった', negativePast: 'らくではなかった' } },
   { type: 'na', hiragana: 'いやな', kanji: '嫌な', romaji: 'iyana', meaning: 'unpleasant / disgusting', conjugation: { negative: 'いやではない', past: 'いやだった', negativePast: 'いやではなかった' } },
+  { type: 'na', hiragana: 'りっぱな', kanji: '立派な', romaji: 'rippa', meaning: 'splendid / fine / respectable / grand', conjugation: { negative: 'りっぱではない', past: 'りっぱだった', negativePast: 'りっぱではなかった' } },
 ]
 export type VerbGroup = 'group1' | 'group2' | 'irregular'
 

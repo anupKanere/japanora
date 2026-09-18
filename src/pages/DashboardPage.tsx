@@ -172,13 +172,13 @@ export default function DashboardPage() {
     return Math.min(100, Math.round(lessonPart + vocabPart + grammarPart))
   }, [completedLessons, totalLessons, vocabLearned, grammarMastered])
 
-  // Deterministic Kanji of the Day (based on day of year)
+  // Deterministic Kanji of the Day (based on local calendar day of year)
   const kanjiOfTheDay = useMemo(() => {
     const now = new Date()
-    const start = new Date(now.getFullYear(), 0, 0)
-    const diff = now.getTime() - start.getTime()
+    const start = Date.UTC(now.getFullYear(), 0, 0)
+    const current = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())
     const oneDay = 1000 * 60 * 60 * 24
-    const dayOfYear = Math.floor(diff / oneDay)
+    const dayOfYear = Math.floor((current - start) / oneDay)
     return n5Kanji[dayOfYear % n5Kanji.length]
   }, [])
 
@@ -601,7 +601,7 @@ export default function DashboardPage() {
               onClick={() => navigate('/reference?category=kanji')}
               className="w-full flex items-center justify-center gap-1.5 text-xs text-accent font-semibold hover:underline py-1"
             >
-              <span>Explore all 125 N5 Kanji in Reference</span>
+              <span>Explore all 125 N5 Kanji in Essentials</span>
               <ChevronRight size={12} />
             </button>
           </div>
@@ -664,9 +664,9 @@ export default function DashboardPage() {
 
           <QuickCard
             icon={<BookText size={18} />}
-            label="N5 Reference"
-            labelJa="参照"
-            sub="125 Kanji cards, Particles, Verb Charts, and reference tables"
+            label="Essentials"
+            labelJa="基礎"
+            sub="Conjugation charts, Particles, Numbers, Time, and 12 essential guides"
             to="/reference"
             badge="12 Sections"
             iconBg="bg-purple-500/10"

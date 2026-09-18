@@ -21,7 +21,7 @@ import {
   Play,
 } from 'lucide-react'
 import type { AppSettings } from '@/types'
-import { playKanaAudio } from '@/data/kana/kana-data'
+import { audioService } from '@/services/audioService'
 import { progressService } from '@/services/progressService'
 
 // ─── Toggle component ─────────────────────────────────────────────────────────
@@ -156,8 +156,9 @@ export default function SettingsPage() {
   ]
 
   // ─── Audio Test ───
-  function handleTestAudio(rate?: number) {
-    playKanaAudio('こんにちは！今日も日本語の勉強を頑張りましょう！', rate)
+  function handleTestAudio(rate?: number, gender?: 'female' | 'male', text?: string) {
+    const sample = text || 'こんにちは！今日も日本語の勉強を頑張りましょう！'
+    audioService.speak(sample, { rate, gender })
   }
 
   // ─── Notification Handlers ───
@@ -406,7 +407,7 @@ export default function SettingsPage() {
       <Section icon={<Volume2 size={15} />} title="Audio & Pronunciation" titleJa="音声・発音設定">
         <SettingRow
           label="Sound & Pronunciation Audio"
-          description="Enable native speech playback and quiz audio"
+          description="Enable native speech playback and quiz audio across the entire website"
         >
           <div className="flex items-center gap-2">
             {settings.soundEnabled ? <Volume2 size={16} className="text-accent" /> : <VolumeX size={16} className="text-text-tertiary" />}
@@ -421,27 +422,154 @@ export default function SettingsPage() {
           </div>
         </SettingRow>
 
-        <SettingRow
-          label="Speech Speed (Pronunciation Rate)"
-          description="Adjust how quickly Japanese sentences and kana are spoken"
-        >
-          <div className="flex gap-1.5">
+        {/* Male vs Female Voice Selection */}
+        <div className="py-4 border-b border-border">
+          <div className="flex items-center justify-between mb-1.5">
+            <div>
+              <p className="text-xs font-bold text-text-primary">Voice Persona & Gender (声質・性別)</p>
+              <p className="text-[11px] text-text-secondary">
+                Choose between female or male vocal narration across all lessons, reference studios, and quizzes
+              </p>
+            </div>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/10 text-accent font-semibold">
+              Website-Wide
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+            {/* Female Voice Card */}
+            <div
+              onClick={() => {
+                updateSettings({ voiceGender: 'female' })
+                handleTestAudio(settings.speechRate, 'female', 'こんにちは！女性の声です。今日も日本語を頑張りましょう！')
+                showToast('Switched to Female Voice (女性)')
+              }}
+              className={[
+                'p-4 rounded-xl border-2 text-left cursor-pointer transition-all relative flex flex-col justify-between',
+                (settings.voiceGender ?? 'female') === 'female'
+                  ? 'border-accent bg-accent-soft/60 shadow-sm'
+                  : 'border-border hover:border-accent/40 hover:bg-surface-2',
+              ].join(' ')}
+            >
+              {(settings.voiceGender ?? 'female') === 'female' && (
+                <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center shadow-xs">
+                  <Check size={11} className="text-white" />
+                </span>
+              )}
+              <div>
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  <span className="text-2xl">👩‍🏫</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                      Female Voice
+                      <span className="text-[10px] font-japanese text-text-tertiary">女性の声</span>
+                    </h4>
+                    <p className="text-[10px] text-accent font-medium">Kyoko / Nanami Profile</p>
+                  </div>
+                </div>
+                <p className="text-[11px] text-text-secondary mt-1 leading-relaxed">
+                  Clear, bright, and instructional pitch. Standard pronunciation ideal for beginners.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleTestAudio(settings.speechRate, 'female', 'こんにちは！女性の声です。')
+                }}
+                className="mt-3.5 py-1.5 px-3 rounded-lg bg-surface border border-border hover:bg-surface-2 text-xs font-semibold text-text-primary flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-xs"
+              >
+                <Play size={11} fill="currentColor" className="text-accent" />
+                <span>Audition Female 🔊</span>
+              </button>
+            </div>
+
+            {/* Male Voice Card */}
+            <div
+              onClick={() => {
+                updateSettings({ voiceGender: 'male' })
+                handleTestAudio(settings.speechRate, 'male', 'こんにちは！男性の声です。一緒に日本語を勉強しましょう！')
+                showToast('Switched to Male Voice (男性)')
+              }}
+              className={[
+                'p-4 rounded-xl border-2 text-left cursor-pointer transition-all relative flex flex-col justify-between',
+                settings.voiceGender === 'male'
+                  ? 'border-accent bg-accent-soft/60 shadow-sm'
+                  : 'border-border hover:border-accent/40 hover:bg-surface-2',
+              ].join(' ')}
+            >
+              {settings.voiceGender === 'male' && (
+                <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accent flex items-center justify-center shadow-xs">
+                  <Check size={11} className="text-white" />
+                </span>
+              )}
+              <div>
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  <span className="text-2xl">👨‍🏫</span>
+                  <div>
+                    <h4 className="text-xs font-bold text-text-primary flex items-center gap-1.5">
+                      Male Voice
+                      <span className="text-[10px] font-japanese text-text-tertiary">男性の声</span>
+                    </h4>
+                    <p className="text-[10px] text-accent font-medium">Otoya / Keita Profile</p>
+                  </div>
+                </div>
+                <p className="text-[11px] text-text-secondary mt-1 leading-relaxed">
+                  Calm, deep, resonant baritone timbre. Authoritative and natural conversational cadence.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleTestAudio(settings.speechRate, 'male', 'こんにちは！男性の声です。')
+                }}
+                className="mt-3.5 py-1.5 px-3 rounded-lg bg-surface border border-border hover:bg-surface-2 text-xs font-semibold text-text-primary flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-xs"
+              >
+                <Play size={11} fill="currentColor" className="text-accent" />
+                <span>Audition Male 🔊</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Global Speech Speed (Pronunciation Rate) */}
+        <div className="py-4 border-b border-border space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-bold text-text-primary">Speech Speed (Pronunciation Rate - 音声速度)</p>
+              <p className="text-[11px] text-text-secondary">
+                Applied globally to all lesson audio, vocabulary cards, counter stackers, and quiz reading
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-accent text-white shadow-xs">
+              {(settings.speechRate ?? 0.85).toFixed(2)}x Speed
+            </span>
+          </div>
+
+          {/* Quick Preset Buttons */}
+          <div className="flex flex-wrap gap-1.5">
             {[
+              { rate: 0.6, label: '0.60x', desc: 'Extra Slow' },
               { rate: 0.75, label: '0.75x', desc: 'Slow' },
-              { rate: 0.85, label: '0.85x', desc: 'Normal' },
-              { rate: 1.0, label: '1.0x', desc: 'Native' },
+              { rate: 0.85, label: '0.85x', desc: 'Normal • Default' },
+              { rate: 1.0, label: '1.00x', desc: 'Native Speed' },
+              { rate: 1.2, label: '1.20x', desc: 'Fast' },
             ].map((s) => (
               <button
                 key={s.rate}
                 disabled={!settings.soundEnabled}
                 onClick={() => {
                   updateSettings({ speechRate: s.rate })
-                  handleTestAudio(s.rate)
+                  handleTestAudio(s.rate, settings.voiceGender, `速さ ${s.label}`)
+                  showToast(`Speech rate set to ${s.label}`)
                 }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                  (settings.speechRate ?? 0.85) === s.rate
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-surface border-border text-text-secondary hover:bg-surface-2'
+                  Math.abs((settings.speechRate ?? 0.85) - s.rate) < 0.03
+                    ? 'bg-accent text-white border-accent shadow-xs'
+                    : 'bg-surface border-border text-text-secondary hover:bg-surface-2 hover:border-accent/40'
                 }`}
               >
                 <span>{s.label}</span>
@@ -449,18 +577,47 @@ export default function SettingsPage() {
               </button>
             ))}
           </div>
-        </SettingRow>
 
+          {/* Smooth Range Slider */}
+          <div className="bg-surface-2/60 border border-border rounded-xl p-3 space-y-2">
+            <div className="flex items-center justify-between text-[11px] text-text-secondary">
+              <span>0.50x (Slowest)</span>
+              <span className="font-semibold text-text-primary">Fine Tune Speed</span>
+              <span>1.50x (Fastest)</span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="1.5"
+              step="0.05"
+              value={settings.speechRate ?? 0.85}
+              disabled={!settings.soundEnabled}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value)
+                updateSettings({ speechRate: val })
+              }}
+              onMouseUp={() => {
+                handleTestAudio(settings.speechRate, settings.voiceGender)
+              }}
+              onTouchEnd={() => {
+                handleTestAudio(settings.speechRate, settings.voiceGender)
+              }}
+              className="w-full h-2 bg-border rounded-lg appearance-none cursor-pointer accent-accent"
+            />
+          </div>
+        </div>
+
+        {/* Audition Phrase & Test Strip */}
         <SettingRow
-          label="Test Audio"
-          description="Sample Japanese pronunciation using your configured speed"
+          label="Test Voice & Current Speed"
+          description="Sample Japanese pronunciation using your active voice persona and speed"
         >
           <button
             onClick={() => handleTestAudio()}
-            className="px-3 py-1.5 rounded-lg bg-surface border border-border hover:bg-surface-2 text-xs font-bold text-accent transition-all flex items-center gap-1.5 shadow-xs active:scale-95"
+            className="px-3.5 py-2 rounded-xl bg-accent text-white hover:bg-accent/90 text-xs font-bold transition-all flex items-center gap-1.5 shadow-md active:scale-95"
           >
-            <Play size={12} fill="currentColor" />
-            <span>Test Voice 🔊</span>
+            <Play size={13} fill="currentColor" />
+            <span>Play Sample 🔊</span>
           </button>
         </SettingRow>
 
@@ -475,6 +632,7 @@ export default function SettingsPage() {
           />
         </SettingRow>
       </Section>
+
 
       {/* ── 4. Study Goals & Revision Reminders ── */}
       <Section icon={<Target size={15} />} title="Study Goals & Reminders" titleJa="学習目標とリマインダー">
