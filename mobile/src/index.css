@@ -1,0 +1,455 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap');
+
+/* ─── CSS Custom Properties (Theme Color System) ─────────────────────────── */
+:root {
+  --color-background: 248 247 244;      /* #f8f7f4 */
+  --color-surface: 255 255 255;         /* #ffffff */
+  --color-surface-2: 241 240 237;       /* #f1f0ed */
+  --color-border: 229 231 235;          /* #e5e7eb */
+  --color-border-strong: 209 213 219;   /* #d1d5db */
+  --color-text-primary: 28 28 30;       /* #1c1c1e */
+  --color-text-secondary: 100 106 120;  /* #646a78 */
+  --color-text-tertiary: 140 145 158;   /* #8c919e */
+  --color-accent: 185 28 28;            /* #b91c1c */
+  --color-accent-soft: 254 226 226;     /* #fee2e2 */
+  --color-warning-soft: 254 243 199;    /* #fef3c7 */
+  --color-success-soft: 220 252 231;    /* #dcfce7 */
+  --color-info-soft: 219 234 254;       /* #dbeafe */
+}
+
+.dark,
+html.dark {
+  color-scheme: dark;
+  --color-background: 13 14 21;         /* #0d0e15 deep obsidian */
+  --color-surface: 22 23 34;            /* #161722 premium card surface */
+  --color-surface-2: 31 32 48;          /* #1f2030 elevated/header surface */
+  --color-border: 42 43 61;             /* #2a2b3d crisp subtle border */
+  --color-border-strong: 62 64 90;      /* #3e405a strong border */
+  --color-text-primary: 244 244 247;    /* #f4f4f7 pure bright text */
+  --color-text-secondary: 186 192 208;  /* #bac0d0 clean high-contrast text */
+  --color-text-tertiary: 139 146 165;   /* #8b92a5 legible tertiary text */
+  --color-accent: 239 68 68;            /* #ef4444 vibrant crimson */
+  --color-accent-soft: 45 20 26;        /* subtle dark crimson tint */
+  --color-warning-soft: 50 35 15;       /* subtle dark amber tint */
+  --color-success-soft: 18 45 28;       /* subtle dark green tint */
+  --color-info-soft: 22 36 64;          /* subtle dark blue tint */
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Japanese aesthetic additions ────────────────────────────────────────── */
+
+/* Subtle linen/washi texture on the page background in light mode */
+body {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%23f8f7f4'/%3E%3Ccircle cx='1' cy='1' r='0.4' fill='%23e8e5de' opacity='0.4'/%3E%3Ccircle cx='3' cy='3' r='0.4' fill='%23e8e5de' opacity='0.4'/%3E%3C/svg%3E");
+}
+
+/* Custom modern horizontal scrollbar */
+.custom-scrollbar-x {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 145, 158, 0.4) transparent;
+}
+.custom-scrollbar-x::-webkit-scrollbar {
+  height: 6px;
+}
+.custom-scrollbar-x::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 9999px;
+}
+.custom-scrollbar-x::-webkit-scrollbar-thumb {
+  background: rgba(140, 145, 158, 0.4);
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+.custom-scrollbar-x::-webkit-scrollbar-thumb:hover {
+  background: #ef4444;
+}
+
+/* ─── Base resets ──────────────────────────────────────────────────────────── */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply font-japanese text-text-primary bg-background antialiased;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.3;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+}
+
+/* ─── Utilities ────────────────────────────────────────────────────────────── */
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .leading-japanese {
+    line-height: 2;
+    letter-spacing: 0.02em;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   BULLETPROOF DARK MODE SYSTEM
+   Guarantees 100% full coverage regardless of Tailwind build state or caching.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+html.dark,
+.dark {
+  color-scheme: dark;
+}
+
+/* ── Page & Body ── */
+html.dark body,
+.dark body {
+  background-color: #0d0e15 !important;
+  background-image: none !important;
+  color: #f4f4f7 !important;
+}
+
+/* ── Backgrounds & Surfaces ── */
+html.dark .bg-background,
+.dark .bg-background {
+  background-color: #0d0e15 !important;
+}
+
+/* App layout backdrop */
+html.dark [class*="bg-background/"],
+.dark [class*="bg-background/"] {
+  background-color: rgba(13, 14, 21, 0.94) !important;
+}
+
+/* Card surfaces */
+html.dark .bg-surface,
+.dark .bg-surface {
+  background-color: #161722 !important;
+}
+
+html.dark [class*="bg-surface/"],
+.dark [class*="bg-surface/"] {
+  background-color: rgba(22, 23, 34, 0.94) !important;
+}
+
+/* Secondary & header surfaces */
+html.dark .bg-surface-2,
+.dark .bg-surface-2 {
+  background-color: #1f2030 !important;
+}
+
+html.dark [class*="bg-surface-2/"],
+.dark [class*="bg-surface-2/"] {
+  background-color: rgba(31, 32, 48, 0.65) !important;
+}
+
+/* Hover surfaces */
+html.dark .hover\:bg-surface-2:hover,
+.dark .hover\:bg-surface-2:hover,
+html.dark [class*="hover:bg-surface-2"]:hover,
+.dark [class*="hover:bg-surface-2"]:hover {
+  background-color: #1f2030 !important;
+}
+
+/* ── Borders & Dividers ── */
+html.dark .border-border,
+.dark .border-border,
+html.dark .border,
+.dark .border {
+  border-color: #2a2b3d !important;
+}
+
+html.dark .border-border-strong,
+.dark .border-border-strong {
+  border-color: #3e405a !important;
+}
+
+html.dark [class*="divide-border"] > :not([hidden]) ~ :not([hidden]),
+.dark [class*="divide-border"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #2a2b3d !important;
+}
+
+/* ── Typography & Text Contrast ── */
+html.dark .text-text-primary,
+.dark .text-text-primary {
+  color: #f4f4f7 !important;
+}
+
+html.dark .text-text-secondary,
+.dark .text-text-secondary {
+  color: #bac0d0 !important;
+}
+
+html.dark .text-text-tertiary,
+.dark .text-text-tertiary {
+  color: #8b92a5 !important;
+}
+
+html.dark h1, .dark h1,
+html.dark h2, .dark h2,
+html.dark h3, .dark h3,
+html.dark h4, .dark h4,
+html.dark h5, .dark h5,
+html.dark h6, .dark h6 {
+  color: #f4f4f7;
+}
+
+/* ── Accents & Highlights ── */
+html.dark .text-accent,
+.dark .text-accent {
+  color: #f87171 !important;
+}
+
+html.dark .bg-accent,
+.dark .bg-accent {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+html.dark .bg-accent-soft,
+.dark .bg-accent-soft {
+  background-color: rgba(220, 38, 38, 0.15) !important;
+}
+
+html.dark .bg-warning-soft,
+.dark .bg-warning-soft {
+  background-color: rgba(217, 119, 6, 0.18) !important;
+}
+
+html.dark .text-warning,
+.dark .text-warning {
+  color: #fbbf24 !important;
+}
+
+html.dark .bg-success-soft,
+.dark .bg-success-soft {
+  background-color: rgba(22, 163, 74, 0.18) !important;
+}
+
+html.dark .bg-info-soft,
+.dark .bg-info-soft {
+  background-color: rgba(37, 99, 235, 0.18) !important;
+}
+
+/* ── Navigation: Sidebar & Header ── */
+html.dark aside,
+.dark aside {
+  background-color: #13141f !important;
+  border-color: #242538 !important;
+}
+
+html.dark header,
+.dark header {
+  background-color: rgba(19, 20, 31, 0.95) !important;
+  border-color: #242538 !important;
+}
+
+html.dark header button,
+.dark header button,
+html.dark header a,
+.dark header a {
+  color: #bac0d0;
+}
+
+html.dark header button:hover,
+.dark header button:hover {
+  background-color: #1f2030 !important;
+  color: #f4f4f7;
+}
+
+/* ── Form Controls & Inputs ── */
+html.dark input,
+.dark input,
+html.dark select,
+.dark select,
+html.dark textarea,
+.dark textarea {
+  background-color: #161722 !important;
+  color: #f4f4f7 !important;
+  border-color: #2a2b3d !important;
+}
+
+html.dark input::placeholder,
+.dark input::placeholder,
+html.dark textarea::placeholder,
+.dark textarea::placeholder {
+  color: #6d7488 !important;
+}
+
+/* ── Card Shadows ── */
+html.dark .shadow-card,
+.dark .shadow-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  border-color: #2a2b3d !important;
+}
+
+html.dark .shadow-card-hover:hover,
+.dark .shadow-card-hover:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7) !important;
+  border-color: #3e405a !important;
+}
+
+/* ── Badge adaptation (Soft, elegant dark glowing pills) ── */
+html.dark .bg-amber-100,  .dark .bg-amber-100   { background-color: rgba(245, 158, 11, 0.18) !important; }
+html.dark .text-amber-700, .dark .text-amber-700 { color: #fde68a !important; }
+
+html.dark .bg-blue-100,   .dark .bg-blue-100    { background-color: rgba(59, 130, 246, 0.18) !important; }
+html.dark .text-blue-700,  .dark .text-blue-700  { color: #bfdbfe !important; }
+
+html.dark .bg-sky-100,    .dark .bg-sky-100     { background-color: rgba(14, 165, 233, 0.18) !important; }
+html.dark .text-sky-700,   .dark .text-sky-700   { color: #bae6fd !important; }
+
+html.dark .bg-indigo-100, .dark .bg-indigo-100  { background-color: rgba(99, 102, 241, 0.18) !important; }
+html.dark .text-indigo-700,.dark .text-indigo-700{ color: #c7d2fe !important; }
+
+html.dark .bg-slate-200,  .dark .bg-slate-200   { background-color: rgba(148, 163, 184, 0.18) !important; }
+html.dark .text-slate-700, .dark .text-slate-700 { color: #e2e8f0 !important; }
+
+html.dark .bg-emerald-100,.dark .bg-emerald-100 { background-color: rgba(16, 185, 129, 0.18) !important; }
+html.dark .text-emerald-700,.dark .text-emerald-700{ color: #a7f3d0 !important; }
+
+html.dark .bg-orange-100, .dark .bg-orange-100  { background-color: rgba(249, 115, 22, 0.18) !important; }
+html.dark .text-orange-700,.dark .text-orange-700{ color: #fed7aa !important; }
+
+html.dark .bg-pink-100,   .dark .bg-pink-100    { background-color: rgba(236, 72, 153, 0.18) !important; }
+html.dark .text-pink-700,  .dark .text-pink-700  { color: #fbcfe8 !important; }
+
+html.dark .bg-rose-100,   .dark .bg-rose-100    { background-color: rgba(244, 63, 94, 0.18) !important; }
+html.dark .text-rose-700,  .dark .text-rose-700  { color: #fecdd3 !important; }
+
+html.dark .bg-purple-100, .dark .bg-purple-100  { background-color: rgba(168, 85, 247, 0.18) !important; }
+html.dark .text-purple-700,.dark .text-purple-700{ color: #e9d5ff !important; }
+
+html.dark .bg-teal-100,   .dark .bg-teal-100    { background-color: rgba(20, 184, 166, 0.18) !important; }
+html.dark .text-teal-700,  .dark .text-teal-700  { color: #99f6e4 !important; }
+
+html.dark .bg-yellow-100, .dark .bg-yellow-100  { background-color: rgba(234, 179, 8, 0.18) !important; }
+html.dark .text-yellow-700,.dark .text-yellow-700{ color: #fef08a !important; }
+
+html.dark .bg-cyan-100,   .dark .bg-cyan-100    { background-color: rgba(6, 182, 212, 0.18) !important; }
+html.dark .text-cyan-700,  .dark .text-cyan-700  { color: #a5f3fc !important; }
+
+html.dark .bg-green-100,  .dark .bg-green-100   { background-color: rgba(34, 197, 94, 0.18) !important; }
+html.dark .text-green-700, .dark .text-green-700 { color: #bbf7d0 !important; }
+
+html.dark .bg-violet-100, .dark .bg-violet-100  { background-color: rgba(139, 92, 246, 0.18) !important; }
+html.dark .text-violet-700,.dark .text-violet-700{ color: #ddd6fe !important; }
+
+html.dark .bg-red-100,    .dark .bg-red-100     { background-color: rgba(239, 68, 68, 0.18) !important; }
+html.dark .text-red-700,   .dark .text-red-700   { color: #fecaca !important; }
+
+/* Dashboard colored cards */
+html.dark .bg-blue-50,    .dark .bg-blue-50     { background-color: rgba(29, 78, 216, 0.15) !important; }
+html.dark .bg-emerald-50, .dark .bg-emerald-50  { background-color: rgba(21, 128, 61, 0.15) !important; }
+html.dark .bg-purple-50,  .dark .bg-purple-50   { background-color: rgba(124, 58, 237, 0.15) !important; }
+html.dark .bg-orange-50,  .dark .bg-orange-50   { background-color: rgba(194, 65, 12, 0.15) !important; }
+html.dark .bg-teal-50,    .dark .bg-teal-50     { background-color: rgba(15, 118, 110, 0.15) !important; }
+html.dark .bg-rose-50,    .dark .bg-rose-50     { background-color: rgba(225, 29, 72, 0.15) !important; }
+
+/* Vibrant card icon texts */
+html.dark .text-blue-600,   .dark .text-blue-600   { color: #93c5fd !important; }
+html.dark .text-emerald-600,.dark .text-emerald-600{ color: #6ee7b7 !important; }
+html.dark .text-purple-600, .dark .text-purple-600 { color: #c4b5fd !important; }
+html.dark .text-orange-600, .dark .text-orange-600 { color: #fdba74 !important; }
+html.dark .text-teal-600,   .dark .text-teal-600   { color: #5eead4 !important; }
+html.dark .text-green-600,  .dark .text-green-600  { color: #86efac !important; }
+html.dark .text-rose-600,   .dark .text-rose-600   { color: #fda4af !important; }
+
+/* ── Tables in dark mode ── */
+html.dark table th,
+.dark table th {
+  color: #bac0d0 !important;
+  background-color: rgba(31, 32, 48, 0.85) !important;
+  border-color: #2a2b3d !important;
+}
+
+html.dark table td,
+.dark table td {
+  border-color: #2a2b3d !important;
+}
+
+html.dark table tr:hover,
+.dark table tr:hover {
+  background-color: rgba(31, 32, 48, 0.5) !important;
+}
+
+/* ── Scrollbars in dark mode ── */
+html.dark *,
+.dark * {
+  scrollbar-color: #3e405a transparent;
+}
+
+html.dark .custom-scrollbar-x,
+.dark .custom-scrollbar-x {
+  scrollbar-color: rgba(140, 146, 165, 0.4) transparent;
+}
+html.dark .custom-scrollbar-x::-webkit-scrollbar-thumb,
+.dark .custom-scrollbar-x::-webkit-scrollbar-thumb {
+  background: rgba(140, 146, 165, 0.4);
+}
+html.dark .custom-scrollbar-x::-webkit-scrollbar-thumb:hover,
+.dark .custom-scrollbar-x::-webkit-scrollbar-thumb:hover {
+  background: #ef4444;
+}
+
+/* ── Kbd / code elements in dark mode ── */
+html.dark kbd,
+.dark kbd,
+html.dark code,
+.dark code {
+  background-color: #1f2030 !important;
+  color: #f4f4f7 !important;
+  border-color: #2a2b3d !important;
+}
+
+/* ─── Japanese text rendering ─────────────────────────────────────────────── */
+
+.font-japanese {
+  font-family: 'Noto Sans JP', system-ui, sans-serif;
+  font-feature-settings: 'kern' 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+.text-japanese-base,
+.text-japanese-lg,
+.text-japanese-xl {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
