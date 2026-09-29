@@ -167,21 +167,24 @@ export function Sidebar() {
 
 // ─── Mobile bottom navigation ─────────────────────────────────────────────────
 
+import { triggerHaptic } from '@/services/mobileService'
+
 const mobileNavItems = navItems.slice(0, 5)
 
 export function MobileNav() {
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-sm border-t border-border flex pb-[env(safe-area-inset-bottom,0px)]"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/95 backdrop-blur-sm border-t border-border flex pb-[env(safe-area-inset-bottom,0px)] select-none"
       aria-label="Mobile navigation"
     >
       {mobileNavItems.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}
+          onClick={() => triggerHaptic('light')}
           className={({ isActive }) =>
             [
-              'flex-1 flex flex-col items-center gap-0.5 py-2 text-[9px] font-medium transition-colors',
+              'flex-1 flex flex-col items-center gap-0.5 py-2 text-[9px] font-medium transition-colors active:scale-95',
               isActive ? 'text-accent' : 'text-text-tertiary',
             ].join(' ')
           }
@@ -206,7 +209,7 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
   return (
     <div className="lg:hidden fixed inset-0 z-50 flex">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <aside className="relative w-72 max-w-[85vw] bg-surface flex flex-col h-full shadow-xl animate-slide-in-left overflow-hidden">
+      <aside className="relative w-72 max-w-[85vw] bg-surface flex flex-col h-full shadow-xl animate-slide-in-left overflow-hidden pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]">
         {/* Top accent strip */}
         <div className="h-1 w-full bg-gradient-to-r from-accent via-red-400 to-rose-300 flex-shrink-0" />
 
@@ -232,10 +235,13 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
             <NavLink
               key={item.to}
               to={item.to}
-              onClick={onClose}
+              onClick={() => {
+                triggerHaptic('light')
+                onClose()
+              }}
               className={({ isActive }) =>
                 [
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all',
+                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-[0.98]',
                   isActive ? 'bg-accent text-white' : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary',
                 ].join(' ')
               }

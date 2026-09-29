@@ -564,9 +564,11 @@ export default function KanaPage() {
       </div>
 
       {/* ── 3. GOJŪON MATRIX GRID ─────────────────────────────────────────────── */}
-      <div className="bg-surface rounded-2xl border border-border p-5 shadow-card">
-        {/* Vowel Column Labels Header (for Seion and Dakuon) */}
-        {soundGroup !== 'yoon' ? (
+      <div className="bg-surface rounded-2xl border border-border p-4 sm:p-5 shadow-card overflow-hidden">
+        <div className="overflow-x-auto custom-scrollbar-x -mx-1 px-1">
+          <div className="min-w-[480px]">
+            {/* Vowel Column Labels Header (for Seion and Dakuon) */}
+            {soundGroup !== 'yoon' ? (
           <div className="grid grid-cols-6 gap-2 mb-3 pb-2 border-b border-border/60 text-center">
             <span className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider self-center">
               Row
@@ -731,6 +733,8 @@ export default function KanaPage() {
               )
             }
           })}
+        </div>
+          </div>
         </div>
       </div>
 
