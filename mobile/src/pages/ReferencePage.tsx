@@ -1718,25 +1718,25 @@ function VerbConjugationGuide() {
     <div className="bg-surface rounded-2xl border border-border shadow-card overflow-hidden transition-all mb-4">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 text-left hover:bg-surface-2/60 transition-colors"
+        className="w-full p-3.5 sm:p-4 text-left hover:bg-surface-2/60 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-accent/10 text-accent flex items-center justify-center">
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <div className="w-9 h-9 rounded-xl bg-accent/10 text-accent flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
             <BookOpen size={18} />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-text-primary">Verb Formation & Conjugation Chart Rules</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-bold">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <span className="font-bold text-sm text-text-primary leading-tight">Verb Formation & Rules</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-bold whitespace-nowrap">
                 Complete N5 Rulebook
               </span>
             </div>
-            <p className="text-xs text-text-tertiary mt-0.5">
+            <p className="text-xs text-text-tertiary mt-1 leading-snug">
               Step-by-step formation rules for ます, て, た, ない, and なかった forms across Groups 1, 2, and 3
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-xs font-semibold text-accent">
+        <div className="flex items-center justify-end sm:justify-center gap-1.5 text-xs font-semibold text-accent flex-shrink-0 self-end sm:self-auto bg-accent/10 sm:bg-transparent px-3 py-1.5 sm:p-0 rounded-lg">
           <span>{isOpen ? 'Hide Rules' : 'View Rules & Cheat-Sheet'}</span>
           {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
@@ -2102,17 +2102,17 @@ function VerbChartTab() {
       <p className="text-xs text-text-tertiary">{filtered.length} verbs • Click any row for details</p>
 
       <div className="overflow-x-auto rounded-xl border border-border shadow-card">
-        <table className="w-full text-sm min-w-[900px]">
+        <table className="w-full text-sm min-w-[760px]">
           <thead>
             <tr className="bg-surface-2 border-b border-border">
-              <th className="text-left px-3 py-3 text-xs font-bold text-text-tertiary uppercase sticky left-0 bg-surface-2">Verb</th>
-              <th className="text-left px-3 py-3 text-xs font-bold text-text-tertiary uppercase">Meaning</th>
-              <th className="text-left px-3 py-3 text-xs font-bold text-text-tertiary uppercase">Group</th>
-              <th className="text-left px-3 py-3 text-xs font-bold text-accent uppercase">〜ます</th>
-              <th className="text-left px-3 py-3 text-xs font-bold text-green-600 uppercase">〜て</th>
-              <th className="text-left px-3 py-3 text-xs font-bold text-blue-600 uppercase">〜た</th>
-              <th className="text-left px-3 py-3 text-xs font-bold text-orange-600 uppercase">〜ない</th>
-              <th className="text-left px-3 py-3 text-xs font-bold text-rose-600 uppercase">〜なかった</th>
+              <th className="text-left px-3 py-2.5 text-xs font-bold text-text-tertiary uppercase sticky left-0 bg-surface-2 z-10 w-28 min-w-[105px] max-w-[115px] border-r border-border/80 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">Verb</th>
+              <th className="text-left px-3 py-2.5 text-xs font-bold text-text-tertiary uppercase min-w-[130px] max-w-[180px]">Meaning</th>
+              <th className="text-center px-2 py-2.5 text-xs font-bold text-text-tertiary uppercase w-20 min-w-[75px]">Group</th>
+              <th className="text-left px-3 py-2.5 text-xs font-bold text-accent uppercase whitespace-nowrap min-w-[90px]">〜ます</th>
+              <th className="text-left px-3 py-2.5 text-xs font-bold text-green-600 uppercase whitespace-nowrap min-w-[90px]">〜て</th>
+              <th className="text-left px-3 py-2.5 text-xs font-bold text-blue-600 uppercase whitespace-nowrap min-w-[90px]">〜た</th>
+              <th className="text-left px-3 py-2.5 text-xs font-bold text-orange-600 uppercase whitespace-nowrap min-w-[90px]">〜ない</th>
+              <th className="text-left px-3 py-2.5 text-xs font-bold text-rose-600 uppercase whitespace-nowrap min-w-[100px]">〜なかった</th>
             </tr>
           </thead>
           <tbody>
@@ -2122,20 +2122,20 @@ function VerbChartTab() {
                 onClick={() => setSelectedIndex(index)}
                 className="border-b border-border last:border-0 hover:bg-surface-2/60 transition-colors cursor-pointer group"
               >
-                <td className="px-3 py-3 sticky left-0 bg-surface group-hover:bg-surface-2/60">
-                  <p className="font-japanese font-bold text-text-primary group-hover:text-accent transition-colors">{v.dictionary}</p>
-                  {v.kanji && <p className="text-xs font-japanese text-text-tertiary">{v.kanji}</p>}
-                  {v.note && <p className="text-[10px] text-info mt-0.5">{v.note}</p>}
+                <td className="px-3 py-2.5 sticky left-0 bg-surface group-hover:bg-surface-2/90 z-10 w-28 min-w-[105px] max-w-[115px] border-r border-border/80 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] transition-colors">
+                  <p className="font-japanese font-bold text-sm text-text-primary group-hover:text-accent transition-colors leading-tight truncate">{v.dictionary}</p>
+                  {v.kanji && <p className="text-[11px] font-japanese text-text-tertiary truncate leading-none mt-0.5">{v.kanji}</p>}
+                  {v.note && <p className="text-[9px] text-info leading-tight mt-0.5 truncate" title={v.note}>{v.note}</p>}
                 </td>
-                <td className="px-3 py-3 text-text-secondary text-xs">{v.meaning}</td>
-                <td className="px-3 py-3">
+                <td className="px-3 py-2.5 text-text-secondary text-xs min-w-[130px] max-w-[180px] leading-snug">{v.meaning}</td>
+                <td className="px-2 py-2.5 text-center w-20 min-w-[75px]">
                   <Badge label={GROUP_LABEL[v.group]} color={GROUP_COLOR[v.group]} />
                 </td>
-                <td className="px-3 py-3 font-japanese font-bold text-accent">{v.masu}</td>
-                <td className="px-3 py-3 font-japanese font-bold text-green-600">{v.te}</td>
-                <td className="px-3 py-3 font-japanese font-bold text-blue-600">{v.ta}</td>
-                <td className="px-3 py-3 font-japanese font-bold text-orange-600">{v.nai}</td>
-                <td className="px-3 py-3 font-japanese font-bold text-rose-600">{v.nakatta}</td>
+                <td className="px-3 py-2.5 font-japanese font-bold text-accent whitespace-nowrap">{v.masu}</td>
+                <td className="px-3 py-2.5 font-japanese font-bold text-green-600 whitespace-nowrap">{v.te}</td>
+                <td className="px-3 py-2.5 font-japanese font-bold text-blue-600 whitespace-nowrap">{v.ta}</td>
+                <td className="px-3 py-2.5 font-japanese font-bold text-orange-600 whitespace-nowrap">{v.nai}</td>
+                <td className="px-3 py-2.5 font-japanese font-bold text-rose-600 whitespace-nowrap">{v.nakatta}</td>
               </tr>
             ))}
           </tbody>
