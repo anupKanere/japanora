@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core'
+import { TextToSpeech, QueueStrategy } from '@capacitor-community/text-to-speech'
 import { settingsService } from './settingsService'
 
 interface VoiceConfig {
@@ -8,6 +10,7 @@ interface VoiceConfig {
 class AudioService {
   private voices: SpeechSynthesisVoice[] = []
   private activeUtterance: SpeechSynthesisUtterance | null = null
+  private nativeSpeaking = false
 
   constructor() {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -45,7 +48,6 @@ class AudioService {
     const settings = settingsService.getSettings()
     const gender = targetGender ?? settings.voiceGender ?? 'female'
 
-    // If a specific voice name was configured and matches
     if (preferredVoiceName) {
       const match = jaVoices.find((v) => v.name === preferredVoiceName)
       if (match) {
@@ -72,21 +74,17 @@ class AudioService {
       if (maleVoice) {
         return { voice: maleVoice, pitch: 0.92 }
       }
-      // If browser doesn't have an explicit male voice installed (e.g. Chrome with 1 generic voice),
-      // we modulate the pitch down to 0.78 for an authentic, resonant masculine voice
       return {
         voice: jaVoices[0] || null,
         pitch: 0.78,
       }
     } else {
-      // Female
       const femaleVoice = jaVoices.find((v) =>
         femaleKeywords.some((kw) => v.name.toLowerCase().includes(kw))
       )
       if (femaleVoice) {
         return { voice: femaleVoice, pitch: 1.12 }
       }
-      // Modulate pitch up to 1.18 for bright, clear feminine resonance
       return {
         voice: jaVoices[0] || null,
         pitch: 1.18,
@@ -96,7 +94,8 @@ class AudioService {
 
   /**
    * Universal speech playback method.
-   * Reads speed and voice gender from settings unless overridden in options.
+   * Seamlessly uses native Android/iOS TTS on mobile devices,
+   * with automatic fallback to Web Speech Synthesis in browsers.
    */
   public speak(
     text: string,
@@ -107,46 +106,80 @@ class AudioService {
       onEnd?: () => void
     }
   ): void {
+    const settings = settingsService.getSettings()
+    if (settings.soundEnabled === false) return
+
+    // Clean text of markdown artifacts, parenthesis or ruby formatting if present
+    const cleanText = text
+      .replace(/（[^）]*）/g, '') // Remove parenthetical notes
+      .replace(/\([^\)]*\)/g, '')
+      .replace(/[・\*\#\_]/g, '')
+      .trim()
+
+    if (!cleanText) return
+
+    const resolvedRate = options?.rate ?? settings.speechRate ?? 0.85
+    const gender = options?.gender ?? settings.voiceGender ?? 'female'
+    const defaultPitch = gender === 'female' ? 1.15 : 0.85
+    const resolvedPitch = options?.pitch ?? defaultPitch
+
+    // ── 1. NATIVE MOBILE APP (Android & iOS via Capacitor Plugin) ──
+    if (Capacitor.isNativePlatform()) {
+      this.nativeSpeaking = true
+      TextToSpeech.stop()
+        .catch(() => {})
+        .finally(() => {
+          TextToSpeech.speak({
+            text: cleanText,
+            lang: 'ja-JP',
+            rate: Math.max(0.5, Math.min(1.6, resolvedRate)),
+            pitch: Math.max(0.5, Math.min(1.8, resolvedPitch)),
+            volume: 1.0,
+            category: 'ambient',
+            queueStrategy: QueueStrategy.Flush,
+          })
+            .then(() => {
+              this.nativeSpeaking = false
+              options?.onEnd?.()
+            })
+            .catch((err) => {
+              this.nativeSpeaking = false
+              console.warn('Native TTS speak failed, trying generic ja lang tag:', err)
+              // Retry with generic 'ja' tag if 'ja-JP' failed
+              TextToSpeech.speak({
+                text: cleanText,
+                lang: 'ja',
+                rate: resolvedRate,
+                pitch: resolvedPitch,
+                volume: 1.0,
+              })
+                .then(() => options?.onEnd?.())
+                .catch((retryErr) => console.error('TTS error:', retryErr))
+            })
+        })
+      return
+    }
+
+    // ── 2. WEB BROWSER / DESKTOP FALLBACK (Web Speech API) ──
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
 
     try {
-      const settings = settingsService.getSettings()
-      if (settings.soundEnabled === false) return
-
-      // Clean text of markdown artifacts, parenthesis or ruby formatting if present
-      const cleanText = text
-        .replace(/（[^）]*）/g, '') // Remove parenthetical notes
-        .replace(/\([^\)]*\)/g, '')
-        .replace(/[・\*\#\_]/g, '')
-        .trim()
-
-      if (!cleanText) return
-
-      // Cancel any ongoing speech to make playback instant and snappy
       window.speechSynthesis.cancel()
 
-      // Chrome speech queue freeze fix
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume()
       }
 
       const utterance = new SpeechSynthesisUtterance(cleanText)
       utterance.lang = 'ja-JP'
-
-      // Speed rate resolution: custom option -> user setting -> default 0.85
-      const resolvedRate = options?.rate ?? settings.speechRate ?? 0.85
       utterance.rate = Math.max(0.5, Math.min(1.6, resolvedRate))
 
-      // Voice & pitch resolution
-      const gender = options?.gender ?? settings.voiceGender ?? 'female'
       const voiceConfig = this.resolveVoice(gender, settings.voiceName)
-
       if (voiceConfig.voice) {
         utterance.voice = voiceConfig.voice
       }
-      utterance.pitch = options?.pitch ?? voiceConfig.pitch
+      utterance.pitch = resolvedPitch
 
-      // Prevent garbage collection bug in Chromium
       this.activeUtterance = utterance
       utterance.onend = () => {
         this.activeUtterance = null
@@ -163,6 +196,10 @@ class AudioService {
   }
 
   public stop(): void {
+    if (Capacitor.isNativePlatform()) {
+      this.nativeSpeaking = false
+      TextToSpeech.stop().catch(() => {})
+    }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel()
       this.activeUtterance = null
@@ -170,6 +207,9 @@ class AudioService {
   }
 
   public isSpeaking(): boolean {
+    if (Capacitor.isNativePlatform()) {
+      return this.nativeSpeaking
+    }
     return this.activeUtterance !== null || (typeof window !== 'undefined' && window.speechSynthesis?.speaking === true)
   }
 
