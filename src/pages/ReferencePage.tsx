@@ -54,38 +54,36 @@ export interface TabDef {
 }
 
 export const TABS: TabDef[] = [
-  // ── 1. Core Grammar & Conjugation (Heavy language engines) ──────────
+  // ── 1. Daily Basics & Life Vocabulary (Easy & Foundational) ────────
+  { id: 'greetings', emoji: '🙏', label: 'Greetings', count: n5Greetings.length, description: 'Essential daily greetings, polite expressions, and classroom phrases' },
+  { id: 'body', emoji: '🧍', label: 'Body Parts', count: n5BodyParts.length, description: 'Head-to-toe anatomical terms, health expressions, and body idioms' },
+  { id: 'days', emoji: '📅', label: 'Days & Dates', count: n5DaysOfWeek.length + n5DateWords.length, description: 'Days of week, months, and special calendar readings (1st to 31st)' },
+  { id: 'clock', emoji: '🕐', label: 'Clock & Time', count: n5ClockHours.length + n5ClockMinutes.length + n5TimeWords.length, description: 'Hours, minutes with sound shifts, and relative time expressions' },
+  { id: 'numbers', emoji: '🔢', label: 'Numbers', count: n5Numbers.length, description: '1 to 10,000 with kanji, hiragana, counters, and sound change rules' },
+  { id: 'family', emoji: '👨‍👩‍👧', label: 'Family', count: n5FamilyOwn.length + n5FamilyOthers.length, description: 'Visual Uchi-Soto family tree and comparison chart (Humble vs Respectful)' },
+
+  // ── 2. Grammar, Characters & Sentence Engines (Increasing Difficulty) ───
   { id: 'verbs', emoji: '動', label: 'Verb Chart', count: n5VerbChart.length, description: '187 verbs across Group 1, Group 2, and Irregular with 5 essential forms' },
   { id: 'adj', emoji: '✏️', label: 'Adjectives', count: n5Adjectives.length, description: '125 い-adjectives and な-adjectives with full 4-form inflection guides' },
-  { id: 'particles', emoji: '📌', label: 'Particles', count: n5Particles.length, description: 'Core grammatical particles (は, が, を, に, で, と, も, etc.) and nuances' },
   { id: 'kanji', emoji: '漢', label: 'Kanji', count: n5Kanji110.length, description: '100 essential JLPT N5 kanji index with readings, strokes, and meanings' },
-
-  // ── 2. Numbers, Time & Calendar (Daily counting & time systems) ──────
-  { id: 'numbers', emoji: '🔢', label: 'Numbers', count: n5Numbers.length, description: '1 to 10,000 with kanji, hiragana, counters, and sound change rules' },
-  { id: 'clock', emoji: '🕐', label: 'Clock & Time', count: n5ClockHours.length + n5ClockMinutes.length + n5TimeWords.length, description: 'Hours, minutes with sound shifts, and relative time expressions' },
-  { id: 'days', emoji: '📅', label: 'Days & Dates', count: n5DaysOfWeek.length + n5DateWords.length, description: 'Days of week, months, and special calendar readings (1st to 31st)' },
   { id: 'wh', emoji: '❓', label: 'WH Questions', count: n5WHQuestions.length, description: 'Question words (who, what, where, when, why, how) and usage examples' },
-
-  // ── 3. Daily Communication & Vocabulary (Real-world interaction) ────
-  { id: 'greetings', emoji: '🙏', label: 'Greetings', count: n5Greetings.length, description: 'Essential daily greetings, polite expressions, and classroom phrases' },
-  { id: 'family', emoji: '👨‍👩‍👧', label: 'Family', count: n5FamilyOwn.length + n5FamilyOthers.length, description: 'Visual Uchi-Soto family tree and comparison chart (Humble vs Respectful)' },
-  { id: 'body', emoji: '🧍', label: 'Body Parts', count: n5BodyParts.length, description: 'Head-to-toe anatomical terms, health expressions, and body idioms' },
+  { id: 'particles', emoji: '📌', label: 'Particles', count: n5Particles.length, description: 'Core grammatical particles (は, が, を, に, で, と, も, etc.) and nuances' },
 ]
 
 export type TabId =
-  | 'verbs'
-  | 'adj'
-  | 'particles'
-  | 'kanji'
-  | 'numbers'
-  | 'clock'
-  | 'days'
-  | 'wh'
   | 'greetings'
+  | 'body'
+  | 'days'
+  | 'clock'
+  | 'numbers'
   | 'family'
   | 'family-own'
   | 'family-oth'
-  | 'body'
+  | 'verbs'
+  | 'adj'
+  | 'kanji'
+  | 'wh'
+  | 'particles'
 
 // ─── Shared search input ──────────────────────────────────────────────────────
 
@@ -837,19 +835,40 @@ function WHTab() {
 
 // ─── 9. PARTICLES TAB ────────────────────────────────────────────────────────
 
-function ParticlesTab() {
+function ParticlesTab({ particleParam, onCloseModal }: { particleParam?: string | null; onCloseModal?: () => void }) {
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
 
-  const filtered = n5Particles.filter(p =>
-    !search ||
-    p.particle.includes(search) ||
-    p.function.toLowerCase().includes(search.toLowerCase()) ||
-    p.romaji.toLowerCase().includes(search.toLowerCase())
-  )
+  const filtered = useMemo(() => {
+    return n5Particles.filter(p =>
+      !search ||
+      p.particle.includes(search) ||
+      p.function.toLowerCase().includes(search.toLowerCase()) ||
+      p.romaji.toLowerCase().includes(search.toLowerCase()) ||
+      p.explanation.toLowerCase().includes(search.toLowerCase())
+    )
+  }, [search])
 
   const currentParticle = selectedIndex !== null ? filtered[selectedIndex] : null
+
+  // Auto-open particle from URL query param
+  useEffect(() => {
+    if (particleParam) {
+      const idx = filtered.findIndex(
+        p => p.particle === particleParam || p.romaji.toLowerCase() === particleParam.toLowerCase()
+      )
+      if (idx !== -1) {
+        setSelectedIndex(idx)
+        setExpanded(filtered[idx].particle)
+      }
+    }
+  }, [particleParam, filtered])
+
+  function handleCloseModal() {
+    setSelectedIndex(null)
+    onCloseModal?.()
+  }
 
   function handlePrev() {
     if (selectedIndex !== null && selectedIndex > 0) {
@@ -873,7 +892,7 @@ function ParticlesTab() {
         e.preventDefault()
         handleNext()
       } else if (e.key === 'Escape') {
-        setSelectedIndex(null)
+        handleCloseModal()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -883,7 +902,7 @@ function ParticlesTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <SearchBar value={search} onChange={(v) => { setSearch(v); setSelectedIndex(null); }} placeholder="Search particles…" />
+        <SearchBar value={search} onChange={(v) => { setSearch(v); setSelectedIndex(null); }} placeholder="Search particles or meanings (e.g. は, wa, topic, direction)..." />
         {filtered.length > 0 && (
           <button
             onClick={() => setSelectedIndex(0)}
@@ -895,7 +914,7 @@ function ParticlesTab() {
         )}
       </div>
 
-      <p className="text-xs text-text-tertiary">{filtered.length} particles</p>
+      <p className="text-xs text-text-tertiary">{filtered.length} particles • Click any particle for full explanation and audio</p>
       <div className="space-y-2">
         {filtered.map((p, i) => (
           <div key={i} className="bg-surface border border-border rounded-xl shadow-card overflow-hidden hover:border-border-strong transition-all">
@@ -934,17 +953,61 @@ function ParticlesTab() {
             </div>
 
             {expanded === p.particle && (
-              <div className="border-t border-border px-4 pb-4 pt-3 animate-fade-in space-y-3">
-                {p.note && (
-                  <p className="text-xs text-info bg-info-soft border border-info/20 px-3 py-2 rounded-lg">💡 {p.note}</p>
+              <div className="border-t border-border px-4 pb-4 pt-3 animate-fade-in space-y-3.5">
+                {/* Explanation */}
+                <div className="bg-surface-2/80 border border-border rounded-xl p-3.5 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-accent font-bold text-xs uppercase tracking-wider">
+                    <BookOpen size={14} />
+                    <span>Explanation & Core Meaning</span>
+                  </div>
+                  <p className="text-xs text-text-primary leading-relaxed">{p.explanation}</p>
+                </div>
+
+                {/* Nuance & Comparison */}
+                {p.nuance && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3.5 space-y-1 text-xs leading-relaxed">
+                    <p className="font-bold uppercase tracking-wider text-[10px] text-amber-600 dark:text-amber-400">
+                      ⚡ Key Nuance & JLPT Pitfalls
+                    </p>
+                    <p className="text-xs text-text-secondary mt-0.5 leading-relaxed">{p.nuance}</p>
+                  </div>
                 )}
+
+                {/* Core Rules */}
+                {p.rules && p.rules.length > 0 && (
+                  <div className="bg-surface-2/50 border border-border rounded-xl p-3 space-y-1.5">
+                    <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider">Grammar Rules & Structure</p>
+                    <ul className="space-y-1 text-xs text-text-secondary list-disc list-inside">
+                      {p.rules.map((rule, rIdx) => (
+                        <li key={rIdx} className="leading-snug">{rule}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Tip note */}
+                {p.note && (
+                  <p className="text-xs text-info bg-info/10 border border-info/20 px-3 py-2 rounded-lg">💡 {p.note}</p>
+                )}
+
+                {/* Examples with Audio */}
                 <div>
-                  <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-2">Examples</p>
+                  <p className="text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-2">Example Sentences</p>
                   <div className="space-y-2">
                     {p.examples.map((ex, j) => (
-                      <div key={j} className="bg-accent-soft/30 border border-accent/20 rounded-lg p-3">
-                        <p className="text-sm font-japanese text-text-primary">{ex.japanese}</p>
-                        <p className="text-xs text-text-secondary italic mt-0.5">{ex.meaning}</p>
+                      <div key={j} className="bg-accent-soft/30 border border-accent/20 rounded-lg p-3 flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <p className="text-sm font-japanese font-semibold text-text-primary">{ex.japanese}</p>
+                          <p className="text-xs text-text-secondary italic mt-0.5">{ex.meaning}</p>
+                        </div>
+                        <button
+                          onClick={() => playKanaAudio(ex.japanese)}
+                          className="p-1.5 rounded-lg text-accent hover:bg-accent/15 active:scale-95 transition-all flex-shrink-0"
+                          title="Listen"
+                          aria-label="Play audio"
+                        >
+                          <Volume2 size={16} />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -959,7 +1022,7 @@ function ParticlesTab() {
       {currentParticle && selectedIndex !== null && (
         <div
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setSelectedIndex(null)}
+          onClick={handleCloseModal}
         >
           {/* Desktop Left Arrow */}
           <button
@@ -991,7 +1054,7 @@ function ParticlesTab() {
                 </span>
               </div>
               <button
-                onClick={() => setSelectedIndex(null)}
+                onClick={handleCloseModal}
                 className="text-text-tertiary hover:text-text-primary p-1 rounded-lg hover:bg-surface-2 transition-colors"
                 aria-label="Close"
               >
@@ -999,18 +1062,63 @@ function ParticlesTab() {
               </button>
             </div>
 
-            {/* Particle Badge & Function */}
-            <div className="flex items-center gap-4 bg-surface-2 rounded-2xl p-4 border border-border">
-              <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-md flex-shrink-0">
-                <span className="text-3xl font-japanese font-bold text-white">{currentParticle.particle}</span>
+            {/* Particle Badge & Function & Audio */}
+            <div className="flex items-center justify-between bg-surface-2 rounded-2xl p-4 border border-border">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center shadow-md flex-shrink-0">
+                  <span className="text-3xl font-japanese font-bold text-white">{currentParticle.particle}</span>
+                </div>
+                <div>
+                  <p className="text-lg font-bold text-text-primary">{currentParticle.function}</p>
+                  <p className="text-xs font-japanese text-text-secondary mt-1 bg-surface px-2 py-1 rounded-lg inline-block border border-border">
+                    {currentParticle.structure}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-lg font-bold text-text-primary">{currentParticle.function}</p>
-                <p className="text-xs font-japanese text-text-secondary mt-1 bg-surface px-2 py-1 rounded-lg inline-block border border-border">
-                  {currentParticle.structure}
+              <button
+                onClick={() => playKanaAudio(currentParticle.particle)}
+                className="p-2.5 rounded-xl bg-surface border border-border text-accent hover:bg-accent hover:text-white transition-all shadow-sm flex-shrink-0"
+                title="Pronounce particle"
+                aria-label="Pronounce particle"
+              >
+                <Volume2 size={20} />
+              </button>
+            </div>
+
+            {/* Explanation */}
+            <div className="bg-surface-2/80 border border-border rounded-xl p-4 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-accent font-bold text-xs uppercase tracking-wider">
+                <BookOpen size={15} />
+                <span>Explanation & Detailed Usage</span>
+              </div>
+              <p className="text-xs text-text-primary leading-relaxed font-normal">
+                {currentParticle.explanation}
+              </p>
+            </div>
+
+            {/* Nuance & Comparison */}
+            {currentParticle.nuance && (
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 space-y-1.5 text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                <p className="font-bold uppercase tracking-wider text-[11px] text-amber-600 dark:text-amber-400">
+                  ⚡ Key Nuance & Exam Traps
+                </p>
+                <p className="text-xs leading-relaxed text-text-secondary">
+                  {currentParticle.nuance}
                 </p>
               </div>
-            </div>
+            )}
+
+            {/* Core Rules */}
+            {currentParticle.rules && currentParticle.rules.length > 0 && (
+              <div className="bg-surface-2/40 border border-border rounded-xl p-3.5 space-y-2">
+                <p className="text-[11px] font-bold text-text-tertiary uppercase tracking-wider">Grammar Rules & Structure</p>
+                <ul className="space-y-1.5 text-xs text-text-secondary list-disc list-inside">
+                  {currentParticle.rules.map((rule, rIdx) => (
+                    <li key={rIdx} className="leading-snug">{rule}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {/* Note */}
             {currentParticle.note && (
@@ -1019,14 +1127,24 @@ function ParticlesTab() {
               </div>
             )}
 
-            {/* Examples */}
+            {/* Examples with Audio */}
             <div>
-              <p className="text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2">Example Sentences</p>
+              <p className="text-xs font-bold text-text-tertiary uppercase tracking-wider mb-2.5">Example Sentences</p>
               <div className="space-y-2.5">
                 {currentParticle.examples.map((ex, j) => (
-                  <div key={j} className="bg-accent-soft border border-accent/20 rounded-xl p-3.5 space-y-1">
-                    <p className="text-sm font-japanese font-bold text-text-primary leading-relaxed">{ex.japanese}</p>
-                    <p className="text-xs text-text-secondary italic">{ex.meaning}</p>
+                  <div key={j} className="bg-accent-soft border border-accent/20 rounded-xl p-3.5 flex items-start justify-between gap-3">
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-japanese font-bold text-text-primary leading-relaxed">{ex.japanese}</p>
+                      <p className="text-xs text-text-secondary italic">{ex.meaning}</p>
+                    </div>
+                    <button
+                      onClick={() => playKanaAudio(ex.japanese)}
+                      className="p-2 rounded-lg bg-surface/80 border border-border text-accent hover:bg-accent hover:text-white transition-all flex-shrink-0"
+                      title="Listen"
+                      aria-label="Play sentence audio"
+                    >
+                      <Volume2 size={16} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -2300,7 +2418,7 @@ function VerbChartTab() {
 export default function ReferencePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const categoryParam = (searchParams.get('category') || searchParams.get('tab')) as TabId | null
-  const initialTab: TabId = (categoryParam && TABS.some(t => t.id === categoryParam)) ? categoryParam : 'verbs'
+  const initialTab: TabId = (categoryParam && TABS.some(t => t.id === categoryParam)) ? categoryParam : 'greetings'
 
   const [activeTab, setActiveTab] = useState<TabId>(initialTab)
   const [quizTab, setQuizTab] = useState<string | null>(null)
@@ -2319,9 +2437,17 @@ export default function ReferencePage() {
 
   function renderTab() {
     switch (activeTab) {
+      case 'greetings': return <GreetingsTab />
+      case 'body': return <BodyPartsTab />
+      case 'days': return <DaysTab />
+      case 'clock': return <ClockTab />
+      case 'numbers': return <NumbersTab />
+      case 'family':
+      case 'family-own':
+      case 'family-oth':
+        return <FamilyUnifiedTab />
       case 'verbs': return <VerbChartTab />
       case 'adj': return <AdjectivesTab />
-      case 'particles': return <ParticlesTab />
       case 'kanji': return (
         <KanjiTab
           kanjiParam={searchParams.get('kanji') || searchParams.get('item')}
@@ -2333,16 +2459,18 @@ export default function ReferencePage() {
           }}
         />
       )
-      case 'numbers': return <NumbersTab />
-      case 'clock': return <ClockTab />
-      case 'days': return <DaysTab />
       case 'wh': return <WHTab />
-      case 'greetings': return <GreetingsTab />
-      case 'family':
-      case 'family-own':
-      case 'family-oth':
-        return <FamilyUnifiedTab />
-      case 'body': return <BodyPartsTab />
+      case 'particles': return (
+        <ParticlesTab
+          particleParam={searchParams.get('particle') || searchParams.get('item')}
+          onCloseModal={() => {
+            const next = new URLSearchParams(searchParams)
+            next.delete('particle')
+            next.delete('item')
+            setSearchParams(next, { replace: true })
+          }}
+        />
+      )
       default: return null
     }
   }
@@ -2360,11 +2488,11 @@ export default function ReferencePage() {
         </div>
         <h2 className="text-xl font-bold text-text-primary">N5 Essentials</h2>
         <p className="text-sm text-text-secondary mt-1">
-          All essential building blocks, conjugation charts, and quick lookup guides organized by topic — 12 comprehensive sections.
+          All essential building blocks, conjugation charts, and quick lookup guides organized by topic — 11 comprehensive sections.
         </p>
       </div>
 
-      {/* 12 Essentials Subcategories Grid — All visible at once in structured logical order */}
+      {/* 11 Essentials Subcategories Grid — All visible at once in structured progressive order */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id

@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, X, BookOpen, FileText, BookMarked, PenLine } from 'lucide-react'
+import { Search, X, BookOpen, FileText, BookMarked, PenLine, Sparkles } from 'lucide-react'
 import { n5Units } from '@/data/curriculum/n5/units'
 import { n5Vocabulary } from '@/data/vocabulary/n5-vocab'
 import { n5Grammar } from '@/data/grammar/n5-grammar'
 import { n5Kanji } from '@/data/kanji/n5-kanji'
+import { n5Particles } from '@/data/reference/n5-reference'
 
-type ResultType = 'lesson' | 'vocab' | 'grammar' | 'kanji'
+type ResultType = 'lesson' | 'vocab' | 'grammar' | 'kanji' | 'particle'
 
 interface SearchResult {
   type: ResultType
@@ -93,6 +94,24 @@ function search(query: string): SearchResult[] {
     }
   }
 
+  // Particles
+  for (const p of n5Particles) {
+    if (
+      p.particle.includes(q) ||
+      p.romaji.toLowerCase().includes(q) ||
+      p.function.toLowerCase().includes(q) ||
+      p.explanation.toLowerCase().includes(q)
+    ) {
+      results.push({
+        type: 'particle',
+        id: p.particle,
+        title: `${p.particle} (${p.romaji})`,
+        subtitle: `${p.function} — ${p.explanation}`,
+        path: `/reference?category=particles&particle=${encodeURIComponent(p.particle)}`,
+      })
+    }
+  }
+
   return results.slice(0, 12)
 }
 
@@ -101,6 +120,7 @@ const typeIcon: Record<ResultType, React.ReactNode> = {
   vocab: <BookMarked size={14} />,
   grammar: <FileText size={14} />,
   kanji: <PenLine size={14} />,
+  particle: <Sparkles size={14} />,
 }
 
 const typeColor: Record<ResultType, string> = {
@@ -108,6 +128,7 @@ const typeColor: Record<ResultType, string> = {
   vocab: 'text-success bg-success-soft',
   grammar: 'text-accent bg-accent-soft',
   kanji: 'text-warning bg-warning-soft',
+  particle: 'text-purple-600 bg-purple-50 dark:bg-purple-950/40',
 }
 
 interface Props {
