@@ -53,7 +53,7 @@ function search(query: string): SearchResult[] {
         id: v.id,
         title: v.hiragana,
         subtitle: v.meaning,
-        path: `/vocabulary`,
+        path: `/vocabulary?word=${encodeURIComponent(v.id)}`,
       })
     }
   }
@@ -62,7 +62,8 @@ function search(query: string): SearchResult[] {
   for (const g of n5Grammar) {
     if (
       g.pattern.toLowerCase().includes(q) ||
-      g.meaning.toLowerCase().includes(q)
+      g.meaning.toLowerCase().includes(q) ||
+      (g.patternReading && g.patternReading.toLowerCase().includes(q))
     ) {
       results.push({
         type: 'grammar',
@@ -87,7 +88,7 @@ function search(query: string): SearchResult[] {
         id: k.id,
         title: k.character,
         subtitle: k.meaning.join(', '),
-        path: `/kanji/${k.id}`,
+        path: `/reference?category=kanji&kanji=${encodeURIComponent(k.character)}`,
       })
     }
   }

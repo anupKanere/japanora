@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Search, X, ChevronLeft, ChevronRight, Sparkles, LayoutGrid } from 'lucide-react'
 import { n5Vocabulary } from '@/data/vocabulary/n5-vocab'
 import { VOCAB_THEMES, getWordTheme, filterVocabByTheme } from '@/data/vocabulary/vocabThemes'
@@ -41,15 +42,18 @@ const POS_COLOR: Record<string, string> = {
   conjunction: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
 }
 
-function VocabCard({ entry, onClick }: { entry: VocabularyEntry; onClick: () => void }) {
+function VocabCard({ entry, onClick, isTarget }: { entry: VocabularyEntry; onClick: () => void; isTarget?: boolean }) {
   const { showKanji } = useApp()
   const themeId = useMemo(() => getWordTheme(entry), [entry])
   const themeObj = VOCAB_THEMES.find((t) => t.id === themeId)
 
   return (
     <button
+      id={`vocab-${entry.id}`}
       onClick={onClick}
-      className="bg-surface rounded-xl border border-border p-4 shadow-card text-left hover:shadow-card-hover hover:border-border-strong hover:scale-[1.01] transition-all group flex flex-col justify-between"
+      className={`bg-surface rounded-xl border p-4 shadow-card text-left hover:shadow-card-hover hover:border-border-strong hover:scale-[1.01] transition-all group flex flex-col justify-between ${
+        isTarget ? 'border-accent ring-2 ring-accent/40 shadow-lg' : 'border-border'
+      }`}
     >
       <div>
         {/* Thematic badge & POS tag */}
@@ -98,10 +102,37 @@ const POS_FILTER_OPTIONS: { label: string; value: PartOfSpeech | 'all' }[] = [
 
 export default function VocabularyPage() {
   const { showKanji } = useApp()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const wordParam = searchParams.get('word') || searchParams.get('id')
+
   const [selectedTheme, setSelectedTheme] = useState<string>('all')
   const [search, setSearch] = useState('')
   const [posFilter, setPosFilter] = useState<string>('all')
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
+
+  // Auto-select word from URL query param (e.g. from global search)
+  useEffect(() => {
+    if (!wordParam) return
+    const targetWord = n5Vocabulary.find(
+      (v) => v.id === wordParam || v.hiragana === wordParam || (v.kanji && v.kanji === wordParam)
+    )
+    if (targetWord) {
+      const themeId = getWordTheme(targetWord)
+      setSelectedTheme(themeId)
+      setSearch('')
+      setPosFilter('all')
+
+      const wordsInTheme = filterVocabByTheme(n5Vocabulary, themeId)
+      const targetIndex = wordsInTheme.findIndex((w) => w.id === targetWord.id)
+      if (targetIndex !== -1) {
+        setSelectedIndex(targetIndex)
+      }
+      setTimeout(() => {
+        const el = document.getElementById(`vocab-${targetWord.id}`)
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 150)
+    }
+  }, [wordParam])
 
   // Calculate precise word counts for each authoritative theme
   const themeCounts = useMemo(() => {
@@ -141,6 +172,16 @@ export default function VocabularyPage() {
   const currentEntry = selectedIndex !== null && filtered[selectedIndex] ? filtered[selectedIndex] : null
   const currentEntryTheme = currentEntry ? VOCAB_THEMES.find((t) => t.id === getWordTheme(currentEntry)) : null
 
+  function handleCloseModal() {
+    setSelectedIndex(null)
+    if (wordParam) {
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.delete('word')
+      nextParams.delete('id')
+      setSearchParams(nextParams, { replace: true })
+    }
+  }
+
   function handlePrev() {
     if (selectedIndex !== null && selectedIndex > 0) {
       setSelectedIndex(selectedIndex - 1)
@@ -158,16 +199,11 @@ export default function VocabularyPage() {
       if (selectedIndex === null) return
       if (e.key === 'ArrowLeft') handlePrev()
       if (e.key === 'ArrowRight') handleNext()
-      if (e.key === 'Escape') setSelectedIndex(null)
+      if (e.key === 'Escape') handleCloseModal()
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedIndex, filtered.length])
-
-  // Reset selectedIndex if search or theme filters change
-  useEffect(() => {
-    setSelectedIndex(null)
-  }, [selectedTheme, posFilter, search])
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -361,6 +397,7 @@ export default function VocabularyPage() {
           <VocabCard
             key={v.id}
             entry={v}
+            isTarget={wordParam === v.id || wordParam === v.hiragana}
             onClick={() => setSelectedIndex(index)}
           />
         ))}
@@ -390,7 +427,7 @@ export default function VocabularyPage() {
       {/* Detail Modal with Next and Previous Buttons */}
       {currentEntry && selectedIndex !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedIndex(null)} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
 
           {/* Floating Previous Arrow on Desktop */}
           <button
@@ -429,7 +466,7 @@ export default function VocabularyPage() {
                 {selectedTheme !== 'all' && ` (${activeThemeObj.label})`}
               </span>
               <button
-                onClick={() => setSelectedIndex(null)}
+                onClick={handleCloseModal}
                 className="p-1.5 rounded-lg hover:bg-surface-2 text-text-secondary hover:text-text-primary transition-colors"
                 aria-label="Close"
               >

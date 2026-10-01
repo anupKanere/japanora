@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { ChevronRight, ChevronLeft, Search, BookOpen, X, Sparkles } from 'lucide-react'
 import { n5Grammar } from '@/data/grammar/n5-grammar'
 import type { GrammarPoint } from '@/types'
@@ -17,7 +18,10 @@ function GrammarCard({
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="bg-surface rounded-xl border border-border shadow-card overflow-hidden transition-all hover:border-border-strong group">
+    <div
+      id={`grammar-${grammar.id}`}
+      className="bg-surface rounded-xl border border-border shadow-card overflow-hidden transition-all hover:border-border-strong group"
+    >
       <div className="flex items-center justify-between p-4 hover:bg-surface-2/50 transition-colors">
         <button
           className="flex items-center gap-3 flex-1 text-left min-w-0"
@@ -130,9 +134,31 @@ const UNIT_FILTERS = [
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 
 export default function GrammarPage() {
+  const { grammarId } = useParams<{ grammarId?: string }>()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const targetId = grammarId || searchParams.get('id') || searchParams.get('grammar')
+
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<string | null>(null)
   const [selectedGrammarIndex, setSelectedGrammarIndex] = useState<number | null>(null)
+
+  // Auto-select grammar point if navigated from search or URL with grammarId
+  useEffect(() => {
+    if (!targetId) return
+    const target = n5Grammar.find((g) => g.id === targetId || g.pattern === targetId)
+    if (target) {
+      setFilter(null)
+      setSearch('')
+      const idx = n5Grammar.findIndex((g) => g.id === target.id)
+      if (idx !== -1) {
+        setSelectedGrammarIndex(idx)
+      }
+      setTimeout(() => {
+        const el = document.getElementById(`grammar-${target.id}`)
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 150)
+    }
+  }, [targetId])
 
   const filtered = n5Grammar.filter((g) => {
     const matchesSearch =
@@ -144,6 +170,21 @@ export default function GrammarPage() {
   })
 
   const currentGrammar = selectedGrammarIndex !== null ? filtered[selectedGrammarIndex] : null
+
+  const navigate = useNavigate()
+
+  function handleCloseModal() {
+    setSelectedGrammarIndex(null)
+    if (grammarId) {
+      navigate('/grammar', { replace: true })
+    }
+    if (searchParams.has('id') || searchParams.has('grammar')) {
+      const nextParams = new URLSearchParams(searchParams)
+      nextParams.delete('id')
+      nextParams.delete('grammar')
+      setSearchParams(nextParams, { replace: true })
+    }
+  }
 
   function handlePrev() {
     if (selectedGrammarIndex !== null && selectedGrammarIndex > 0) {
@@ -167,7 +208,7 @@ export default function GrammarPage() {
         e.preventDefault()
         handleNext()
       } else if (e.key === 'Escape') {
-        setSelectedGrammarIndex(null)
+        handleCloseModal()
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -266,7 +307,7 @@ export default function GrammarPage() {
       {currentGrammar && selectedGrammarIndex !== null && (
         <div
           className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setSelectedGrammarIndex(null)}
+          onClick={handleCloseModal}
         >
           {/* Desktop Left Arrow */}
           <button
@@ -300,7 +341,7 @@ export default function GrammarPage() {
                 )}
               </div>
               <button
-                onClick={() => setSelectedGrammarIndex(null)}
+                onClick={handleCloseModal}
                 className="text-text-tertiary hover:text-text-primary p-1 rounded-lg hover:bg-surface-2 transition-colors"
                 aria-label="Close"
               >

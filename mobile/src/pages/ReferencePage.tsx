@@ -1107,12 +1107,37 @@ const KANJI_CATEGORY_COLOR: Record<string, string> = {
 
 
 
-function KanjiTab() {
+function KanjiTab({ kanjiParam, onCloseModal }: { kanjiParam?: string | null; onCloseModal?: () => void }) {
   const [search, setSearch] = useState('')
   const [cat, setCat] = useState<string>('all')
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
 
+  function handleCloseModal() {
+    setSelectedIndex(null)
+    onCloseModal?.()
+  }
+
   const categories = useMemo(() => ['all', ...Array.from(new Set(n5Kanji110.map(k => k.category)))], [])
+
+  // Auto-select kanji from URL param or search result
+  useEffect(() => {
+    if (!kanjiParam) return
+    const idx = n5Kanji110.findIndex(
+      k =>
+        k.character === kanjiParam ||
+        k.id === kanjiParam ||
+        k.meaning.toLowerCase() === kanjiParam.toLowerCase()
+    )
+    if (idx !== -1) {
+      setCat('all')
+      setSearch('')
+      setSelectedIndex(idx)
+      setTimeout(() => {
+        const el = document.getElementById(`kanji-${n5Kanji110[idx].character}`)
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }, 150)
+    }
+  }, [kanjiParam])
 
   const filtered = n5Kanji110.filter(k => {
     const m = !search ||
@@ -1143,7 +1168,7 @@ function KanjiTab() {
       if (selectedIndex === null) return
       if (e.key === 'ArrowLeft') handlePrev()
       if (e.key === 'ArrowRight') handleNext()
-      if (e.key === 'Escape') setSelectedIndex(null)
+      if (e.key === 'Escape') handleCloseModal()
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -1167,8 +1192,11 @@ function KanjiTab() {
         {filtered.map((k, index) => (
           <button
             key={k.id}
+            id={`kanji-${k.character}`}
             onClick={() => setSelectedIndex(index)}
-            className="bg-surface border border-border rounded-xl p-2 text-center shadow-card hover:shadow-card-hover hover:border-accent/40 hover:bg-accent-soft/10 hover:scale-[1.02] transition-all group"
+            className={`bg-surface border rounded-xl p-2 text-center shadow-card hover:shadow-card-hover hover:border-accent/40 hover:bg-accent-soft/10 hover:scale-[1.02] transition-all group ${
+              kanjiParam === k.character || kanjiParam === k.id ? 'border-accent ring-2 ring-accent/40 shadow-lg' : 'border-border'
+            }`}
           >
             <p className="text-3xl font-japanese font-bold text-text-primary group-hover:text-accent transition-colors">{k.character}</p>
             <p className="text-[10px] text-text-tertiary mt-1 line-clamp-1">{k.meaning}</p>
@@ -1181,7 +1209,7 @@ function KanjiTab() {
       {/* Kanji detail modal with Next and Previous */}
       {currentKanji && selectedIndex !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedIndex(null)} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
 
           {/* Desktop Floating Left Arrow */}
           <button
@@ -1218,7 +1246,7 @@ function KanjiTab() {
                 Kanji {selectedIndex + 1} of {filtered.length}
               </span>
               <button
-                onClick={() => setSelectedIndex(null)}
+                onClick={handleCloseModal}
                 className="p-1.5 rounded-lg hover:bg-surface-2 text-text-secondary hover:text-text-primary transition-colors"
                 aria-label="Close"
               >
@@ -2294,7 +2322,17 @@ export default function ReferencePage() {
       case 'verbs': return <VerbChartTab />
       case 'adj': return <AdjectivesTab />
       case 'particles': return <ParticlesTab />
-      case 'kanji': return <KanjiTab />
+      case 'kanji': return (
+        <KanjiTab
+          kanjiParam={searchParams.get('kanji') || searchParams.get('item')}
+          onCloseModal={() => {
+            const next = new URLSearchParams(searchParams)
+            next.delete('kanji')
+            next.delete('item')
+            setSearchParams(next, { replace: true })
+          }}
+        />
+      )
       case 'numbers': return <NumbersTab />
       case 'clock': return <ClockTab />
       case 'days': return <DaysTab />

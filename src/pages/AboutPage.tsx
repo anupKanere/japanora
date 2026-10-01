@@ -456,13 +456,16 @@ export default function AboutPage() {
               <span className="text-rose-300 font-bold text-sm">N5 · N4 · N3</span>
               <span>Live Batches</span>
             </div>
-            <a
-              href="#meet-team"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold shadow-lg hover:scale-105 active:scale-95 transition-all ml-auto"
+            <button
+              type="button"
+              onClick={() => {
+                document.getElementById('meet-team')?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold shadow-lg hover:scale-105 active:scale-95 transition-all ml-auto cursor-pointer"
             >
               <span>Meet Faculty</span>
               <ChevronRight size={14} />
-            </a>
+            </button>
           </div>
         </div>
       </div>
