@@ -7,8 +7,17 @@ interface VoiceConfig {
   pitch: number
 }
 
+interface NativeVoiceItem {
+  index: number
+  voiceURI: string
+  name: string
+  lang: string
+}
+
 class AudioService {
   private voices: SpeechSynthesisVoice[] = []
+  private nativeVoices: NativeVoiceItem[] = []
+  private nativeVoicesLoaded = false
   private activeUtterance: SpeechSynthesisUtterance | null = null
   private nativeSpeaking = false
 
@@ -21,6 +30,57 @@ class AudioService {
         }
       }
     }
+    if (Capacitor.isNativePlatform()) {
+      this.loadNativeVoices().catch(() => {})
+    }
+  }
+
+  public async loadNativeVoices(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return
+    try {
+      const res = await TextToSpeech.getSupportedVoices()
+      if (res && res.voices && res.voices.length > 0) {
+        this.nativeVoices = res.voices
+          .map((v, idx) => ({
+            index: idx,
+            voiceURI: ((v as any).voiceURI || v.name || ''),
+            name: v.name || '',
+            lang: v.lang || '',
+          }))
+          .filter((v) => v.lang.startsWith('ja') || v.lang === 'ja-JP' || v.lang === 'ja')
+      }
+      this.nativeVoicesLoaded = true
+    } catch (e) {
+      console.warn('Could not query native voices:', e)
+    }
+  }
+
+  private resolveNativeVoiceIndex(gender: 'female' | 'male'): number | undefined {
+    if (this.nativeVoices.length === 0) return undefined
+
+    const malePatterns = ['jad', 'htm', 'male', 'man', 'boy', 'daichi', 'takumi', 'otoya', 'keita', '男性']
+    const femalePatterns = ['jac', 'jab', 'jaa', 'hfn', 'female', 'woman', 'girl', 'kyoko', 'nanami', 'ayumi', '女性']
+
+    if (gender === 'male') {
+      const maleVoice = this.nativeVoices.find((v) => {
+        const full = `${v.voiceURI} ${v.name}`.toLowerCase()
+        return malePatterns.some((p) => full.includes(p))
+      })
+      if (maleVoice) return maleVoice.index
+      if (this.nativeVoices.length > 1) {
+        return this.nativeVoices[this.nativeVoices.length - 1].index
+      }
+    } else {
+      const femaleVoice = this.nativeVoices.find((v) => {
+        const full = `${v.voiceURI} ${v.name}`.toLowerCase()
+        return femalePatterns.some((p) => full.includes(p))
+      })
+      if (femaleVoice) return femaleVoice.index
+      if (this.nativeVoices.length > 0) {
+        return this.nativeVoices[0].index
+      }
+    }
+    return undefined
   }
 
   private populateVoices() {
@@ -38,7 +98,7 @@ class AudioService {
   }
 
   /**
-   * Resolves the best Japanese voice & calibrated pitch for the target gender.
+   * Resolves the best Japanese voice & calibrated pitch for the target gender on web.
    */
   public resolveVoice(
     targetGender?: 'female' | 'male',
@@ -53,7 +113,7 @@ class AudioService {
       if (match) {
         return {
           voice: match,
-          pitch: gender === 'female' ? 1.15 : 0.85,
+          pitch: gender === 'female' ? 1.25 : 0.70,
         }
       }
     }
@@ -72,22 +132,22 @@ class AudioService {
         maleKeywords.some((kw) => v.name.toLowerCase().includes(kw))
       )
       if (maleVoice) {
-        return { voice: maleVoice, pitch: 0.92 }
+        return { voice: maleVoice, pitch: 0.78 }
       }
       return {
         voice: jaVoices[0] || null,
-        pitch: 0.78,
+        pitch: 0.68,
       }
     } else {
       const femaleVoice = jaVoices.find((v) =>
         femaleKeywords.some((kw) => v.name.toLowerCase().includes(kw))
       )
       if (femaleVoice) {
-        return { voice: femaleVoice, pitch: 1.12 }
+        return { voice: femaleVoice, pitch: 1.15 }
       }
       return {
         voice: jaVoices[0] || null,
-        pitch: 1.18,
+        pitch: 1.28,
       }
     }
   }
@@ -118,39 +178,56 @@ class AudioService {
 
     if (!cleanText) return
 
-    const resolvedRate = options?.rate ?? settings.speechRate ?? 0.85
+    const baseRate = options?.rate ?? settings.speechRate ?? 0.85
     const gender = options?.gender ?? settings.voiceGender ?? 'female'
-    const defaultPitch = gender === 'female' ? 1.15 : 0.85
-    const resolvedPitch = options?.pitch ?? defaultPitch
+
+    // Distinct pitch and cadence calibration for female vs male
+    const isFemale = gender === 'female'
+    const calibratedPitch = options?.pitch ?? (isFemale ? 1.28 : 0.68)
+    const calibratedRate = isFemale
+      ? Math.max(0.5, Math.min(1.6, baseRate * 1.02))
+      : Math.max(0.5, Math.min(1.6, baseRate * 0.94))
 
     // ── 1. NATIVE MOBILE APP (Android & iOS via Capacitor Plugin) ──
     if (Capacitor.isNativePlatform()) {
       this.nativeSpeaking = true
+      // Lazy load native voice catalog if not yet loaded
+      if (!this.nativeVoicesLoaded) {
+        this.loadNativeVoices().catch(() => {})
+      }
+
+      const nativeVoiceIndex = this.resolveNativeVoiceIndex(gender)
+
       TextToSpeech.stop()
         .catch(() => {})
         .finally(() => {
-          TextToSpeech.speak({
+          const ttsPayload: any = {
             text: cleanText,
             lang: 'ja-JP',
-            rate: Math.max(0.5, Math.min(1.6, resolvedRate)),
-            pitch: Math.max(0.5, Math.min(1.8, resolvedPitch)),
+            rate: calibratedRate,
+            pitch: calibratedPitch,
             volume: 1.0,
             category: 'ambient',
             queueStrategy: QueueStrategy.Flush,
-          })
+          }
+
+          if (nativeVoiceIndex !== undefined) {
+            ttsPayload.voice = nativeVoiceIndex
+          }
+
+          TextToSpeech.speak(ttsPayload)
             .then(() => {
               this.nativeSpeaking = false
               options?.onEnd?.()
             })
             .catch((err) => {
               this.nativeSpeaking = false
-              console.warn('Native TTS speak failed, trying generic ja lang tag:', err)
-              // Retry with generic 'ja' tag if 'ja-JP' failed
+              console.warn('Native TTS speak failed, retrying with ja lang:', err)
               TextToSpeech.speak({
                 text: cleanText,
                 lang: 'ja',
-                rate: resolvedRate,
-                pitch: resolvedPitch,
+                rate: calibratedRate,
+                pitch: calibratedPitch,
                 volume: 1.0,
               })
                 .then(() => options?.onEnd?.())
@@ -172,13 +249,13 @@ class AudioService {
 
       const utterance = new SpeechSynthesisUtterance(cleanText)
       utterance.lang = 'ja-JP'
-      utterance.rate = Math.max(0.5, Math.min(1.6, resolvedRate))
+      utterance.rate = calibratedRate
 
       const voiceConfig = this.resolveVoice(gender, settings.voiceName)
       if (voiceConfig.voice) {
         utterance.voice = voiceConfig.voice
       }
-      utterance.pitch = resolvedPitch
+      utterance.pitch = calibratedPitch
 
       this.activeUtterance = utterance
       utterance.onend = () => {

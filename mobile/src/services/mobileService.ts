@@ -3,6 +3,7 @@ import { StatusBar, Style } from '@capacitor/status-bar'
 import { SplashScreen } from '@capacitor/splash-screen'
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics'
 import { App as CapApp } from '@capacitor/app'
+import { audioService } from './audioService'
 
 export const isNative = Capacitor.isNativePlatform()
 
@@ -10,6 +11,8 @@ export async function initMobileApp() {
   if (!isNative) return
 
   try {
+    // Pre-load native TTS voices
+    audioService.loadNativeVoices().catch(() => {})
     // Hide splash screen after app initialization
     await SplashScreen.hide()
   } catch {
